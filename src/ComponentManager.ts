@@ -41,8 +41,6 @@ export default class ModuleLoader {
     //if (!message.cleanContent[0].match(/[-!$%^&()+|~=`{}\[\]\\";'<>?,.\/]/)) return;
     const args = message.cleanContent.replace(/\n/g, "").split(" ").filter(c => ["", " "].indexOf(c) === -1);
     const command = args[0].substring(1);
-    
-    this.getParamNames(this.modules[1])
 
     if (author.id === "184165847940464641" && args[0].toLowerCase() === "!unload") {
       if (!args[1]) return;
