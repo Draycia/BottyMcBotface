@@ -1,5 +1,6 @@
 import Discord = require("discord.js");
 const util = require("util");
+import Command from "./Modules/Command";
 
 interface CommandObject {
   aliases: string[];
@@ -15,6 +16,27 @@ export default class ModuleLoader {
   private moduleDir = './Modules/';
   private fileDir = './src' + this.moduleDir.substring(1);
 
+  private cmCommands = {
+    "load": {
+      aliases: [ ],
+      description: "Loads the specified module if it isn't already loaded.",
+      handler: this.loadCommand.bind(this),
+      prefix: "~"
+    },
+    "unload": {
+      aliases: [ ],
+      description: "Unloads the specified module if it is currently loaded.",
+      handler: this.unloadCommand.bind(this),
+      prefix: "~"
+    },    
+    "reload": {
+      aliases: [ ],
+      description: "Unloads then loads the specified module.",
+      handler: this.reloadCommand.bind(this),
+      prefix: "~"
+    }
+  }
+
   constructor(bot: Discord.Client) {
     console.log("Module Loader loaded. Giggity.");
 
@@ -26,6 +48,8 @@ export default class ModuleLoader {
   private onBot() {
     const fs = require('fs');
 
+    this.modules["ComponentManager.ts"] = this.cmCommands;
+
     fs.readdir(this.fileDir, (err: Error, files: string[]) => {
       if (err) { console.log(err); return; }
 
@@ -33,6 +57,7 @@ export default class ModuleLoader {
         this.loadModule(file);
       });
     });
+
   }
 
   private onMessage(message: Discord.Message) {
@@ -42,30 +67,6 @@ export default class ModuleLoader {
     //if (!message.cleanContent[0].match(/[-!$%^&()+|~=`{}\[\]\\";'<>?,.\/]/)) return;
     const args = message.cleanContent.replace(/\n/g, "").split(" ").filter(c => ["", " "].indexOf(c) === -1);
     const command = args[0].substring(1);
-
-    if (author.id === "184165847940464641" && args[0].toLowerCase() === "!unload") {
-      if (!args[1]) return;
-      if (!args[1].toLowerCase().endsWith(".ts")) args[1] += ".ts";
-      if (this.modules[args[1]]) {
-        this.unloadModule(args[1], <Discord.TextChannel>message.channel);
-      }
-    }
-
-    if (author.id === "184165847940464641" && args[0].toLowerCase() === "!load") {
-      if (!args[1]) return;
-      if (!args[1].toLowerCase().endsWith(".ts")) args[1] += ".ts";
-      if (!this.modules[args[1]]) {
-        this.loadModule(args[1], <Discord.TextChannel>message.channel);
-      }
-    }
-
-    if (author.id === "184165847940464641" && args[0].toLowerCase() === "!reload") {
-      if (!args[1]) return;
-      if (!args[1].toLowerCase().endsWith(".ts")) args[1] += ".ts";
-      if (this.modules[args[1]]) {
-        this.reloadModule(args[1], <Discord.TextChannel>message.channel);
-      }
-    }
 
     if (!args) return;
     for (var mod in this.modules) {
@@ -81,15 +82,52 @@ export default class ModuleLoader {
     }
   }
 
+  public unloadCommand(command: Command) {
+    const author = command.author;
+    const args = command.args;
+    if (author.id !== "184165847940464641") return;
+    if (!args) return;
+    if (!args[0].toLowerCase().endsWith(".ts")) args[0] += ".ts";
+    if (this.modules[args[0]]) {
+      this.unloadModule(args[0], <Discord.TextChannel>command.message.channel);
+    }
+    
+  }
+
+  public loadCommand(command: Command) {
+    const author = command.author;
+    const args = command.args;
+    if (author.id !== "184165847940464641") return;
+    if (!args[0]) return;
+    if (!args[0].toLowerCase().endsWith(".ts")) args[0] += ".ts";
+    if (!this.modules[args[0]]) {
+      this.loadModule(args[0], <Discord.TextChannel>command.message.channel);
+    } 
+  }
+
+  public reloadCommand(command: Command) {
+    const author = command.author;
+    const args = command.args;
+    if (author.id !== "184165847940464641") return;
+    if (!args[0]) return;
+    if (!args[0].toLowerCase().endsWith(".ts")) args[0] += ".ts";
+    if (!this.modules[args[0]]) {
+      this.reloadModule(args[0], <Discord.TextChannel>command.message.channel);
+    }
+  }
+
   private loadModule(name: string, channel?: Discord.TextChannel) {
     import(this.moduleDir + name.substring(0, name.length - 3)).then(importedModule => {
       let botModule = new importedModule.default;
-      const data = botModule.register();
+      let data;
+      if (typeof botModule.register !== "undefined") {
+        data = botModule.register();
+      } else {
+        data = { name: { } };
+      }
       const ary = [ this.bot ];
       botModule.init(...ary);
-      //botModule.init(this.bot);
       this.deinitFuncs[name] = botModule;
-      console.log(this.getParamNames(botModule.init));
       this.modules[name] = data;
       if (channel) channel.send(`Loaded module **${name}**`);
     });
