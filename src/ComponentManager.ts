@@ -84,15 +84,10 @@ export default class ModuleLoader {
   public unloadCommand(command: Command) {
     const author = command.author;
     const args = command.args;
-    console.log("1");
     if (author.id !== "184165847940464641") return;
-    console.log("2");
     if (!args) return;
-    console.log("3");
-    console.log("4");
     if (!args[0].toLowerCase().endsWith(".ts")) args[0] += ".ts";
     if (this.modules[args[0]]) {
-      console.log("5");
       this.unloadModule(args[0], <Discord.TextChannel>command.message.channel);
     }
     
