@@ -118,7 +118,12 @@ export default class ModuleLoader {
   private loadModule(name: string, channel?: Discord.TextChannel) {
     import(this.moduleDir + name.substring(0, name.length - 3)).then(importedModule => {
       let botModule = new importedModule.default;
-      const data = botModule.register();
+      let data;
+      if (typeof botModule.register !== "undefined") {
+        data = botModule.register();
+      } else {
+        data = { name: { } };
+      }
       const ary = [ this.bot ];
       botModule.init(...ary);
       this.deinitFuncs[name] = botModule;
