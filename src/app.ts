@@ -12,6 +12,7 @@ import RiotAPILibraries from "./RiotAPILibraries";
 import Techblog from "./Techblog";
 import Uptime from "./Uptime";
 import VersionChecker from "./VersionChecker";
+import ComponentManager from "./ComponentManager";
 
 import { fileBackedObject } from "./FileBackedObject";
 import { PersonalSettings } from "./PersonalSettings";
@@ -35,6 +36,7 @@ const riotAPILibraries = new RiotAPILibraries(bot.client, personalSettings, shar
 const techblog = new Techblog(bot.client, sharedSettings, "data/techblog_data.json");
 const info = new Info(bot.client, sharedSettings, "data/info_data.json", versionChecker);
 const apiStatus = new ApiStatus(bot.client, sharedSettings);
+const componentManager = new ComponentManager(bot.client);
 
 // start bot
 bot.start();
