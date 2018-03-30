@@ -37,7 +37,7 @@ export default class ModuleLoader {
 
   private onMessage(message: Discord.Message) {
     const author = message.author;
-    if (!message.cleanContent || message.author.bot) return;
+    if (!message.cleanContent || message.author.bot || !(message.channel instanceof Discord.TextChannel)) return;
     //if (!message.cleanContent[0].match(/[-!$%^&()+|~=`{}\[\]\\";'<>?,.\/]/)) return;
     const args = message.cleanContent.replace(/\n/g, "").split(" ").filter(c => ["", " "].indexOf(c) === -1);
     const command = args[0].substring(1);
@@ -80,31 +80,31 @@ export default class ModuleLoader {
     }
   }
 
-  private loadModule(file: string, channel?: any) {
-    import(this.moduleDir + file.substring(0, file.length - 3)).then(importedModule => {
+  private loadModule(name: string, channel?: Discord.TextChannel) {
+    import(this.moduleDir + name.substring(0, name.length - 3)).then(importedModule => {
       let botModule = new importedModule.default;
       const data = botModule.register();
       const ary = [ this.bot ];
       botModule.init(...ary);
       //botModule.init(this.bot);
-      this.deinitFuncs[file] = botModule;
+      this.deinitFuncs[name] = botModule;
       console.log(this.getParamNames(botModule.init));
-      this.modules[file] = data;
-      if (channel) channel.send(`Loaded module **${file}**`);
+      this.modules[name] = data;
+      if (channel) channel.send(`Loaded module **${name}**`);
     });
   }
 
-  private unloadModule(file: string, channel?: any) {
-    this.deinitFuncs[file].deinit();
-    delete this.modules[file];
-    delete this.deinitFuncs[file];
-    if (channel) channel.send(`Unloaded module **${file}**`);
+  private unloadModule(name: string, channel?: Discord.TextChannel) {
+    this.deinitFuncs[name].deinit();
+    delete this.modules[name];
+    delete this.deinitFuncs[name];
+    if (channel) channel.send(`Unloaded module **${name}**`);
   }
 
-  private reloadModule(file: string, channel?: any) {
-    this.unloadModule(file);
-    this.loadModule(file);
-    if (channel) channel.send(`Reloaded module **${file}**`);
+  private reloadModule(name: string, channel?: Discord.TextChannel) {
+    this.unloadModule(name);
+    this.loadModule(name);
+    if (channel) channel.send(`Reloaded module **${name}**`);
   }
 
   // Credit for getParamNames(), STRIP_COMMENTS, && ARGUMENT_NAMES goes to
@@ -113,7 +113,7 @@ export default class ModuleLoader {
   private STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
   private ARGUMENT_NAMES = /([^\s,]+)/g;
 
-  private getParamNames(func: any) {
+  private getParamNames(func: Function) {
     var fnStr = func.toString().replace(this.STRIP_COMMENTS, '');
     var result = fnStr.slice(fnStr.indexOf('(') + 1, fnStr.indexOf(')')).match(this.ARGUMENT_NAMES);
     if (!result) result = [];
