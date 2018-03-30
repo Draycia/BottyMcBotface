@@ -102,7 +102,7 @@ export default class ModuleLoader {
     if (channel) channel.send(`Unloaded module **${name}**`);
   }
 
-  private reloadModule(name: string, channel?: Discord.Channel) {
+  private reloadModule(name: string, channel?: Discord.TextChannel) {
     this.unloadModule(name);
     this.loadModule(name);
     if (channel) channel.send(`Reloaded module **${name}**`);
