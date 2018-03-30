@@ -37,7 +37,8 @@ export default class ModuleLoader {
 
   private onMessage(message: Discord.Message) {
     const author = message.author;
-    if (!message.cleanContent || message.author.bot || !(message.channel instanceof Discord.TextChannel)) return;
+    if (!message.cleanContent || message.author.bot) return;
+    if (!(message.channel instanceof Discord.TextChannel)) return;
     //if (!message.cleanContent[0].match(/[-!$%^&()+|~=`{}\[\]\\";'<>?,.\/]/)) return;
     const args = message.cleanContent.replace(/\n/g, "").split(" ").filter(c => ["", " "].indexOf(c) === -1);
     const command = args[0].substring(1);
@@ -46,7 +47,7 @@ export default class ModuleLoader {
       if (!args[1]) return;
       if (!args[1].toLowerCase().endsWith(".ts")) args[1] += ".ts";
       if (this.modules[args[1]]) {
-        this.unloadModule(args[1], message.channel);
+        this.unloadModule(args[1], <Discord.TextChannel>message.channel);
       }
     }
 
@@ -54,7 +55,7 @@ export default class ModuleLoader {
       if (!args[1]) return;
       if (!args[1].toLowerCase().endsWith(".ts")) args[1] += ".ts";
       if (!this.modules[args[1]]) {
-        this.loadModule(args[1], message.channel);
+        this.loadModule(args[1], <Discord.TextChannel>message.channel);
       }
     }
 
@@ -62,7 +63,7 @@ export default class ModuleLoader {
       if (!args[1]) return;
       if (!args[1].toLowerCase().endsWith(".ts")) args[1] += ".ts";
       if (this.modules[args[1]]) {
-        this.reloadModule(args[1], message.channel);
+        this.reloadModule(args[1], <Discord.TextChannel>message.channel);
       }
     }
 
@@ -101,7 +102,7 @@ export default class ModuleLoader {
     if (channel) channel.send(`Unloaded module **${name}**`);
   }
 
-  private reloadModule(name: string, channel?: Discord.TextChannel) {
+  private reloadModule(name: string, channel?: Discord.Channel) {
     this.unloadModule(name);
     this.loadModule(name);
     if (channel) channel.send(`Reloaded module **${name}**`);
