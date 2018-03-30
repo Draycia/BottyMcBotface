@@ -89,8 +89,8 @@ export default class ModuleLoader {
     console.log("2");
     if (!args) return;
     console.log("3");
-    if (!args[0].toLowerCase().endsWith(".ts")) args[1] += ".ts";
     console.log("4");
+    if (!args[0].toLowerCase().endsWith(".ts")) args[0] += ".ts";
     if (this.modules[args[0]]) {
       console.log("5");
       this.unloadModule(args[0], <Discord.TextChannel>command.message.channel);
@@ -103,7 +103,7 @@ export default class ModuleLoader {
     const args = command.args;
     if (author.id !== "184165847940464641") return;
     if (!args[0]) return;
-    if (!args[0].toLowerCase().endsWith(".ts")) args[1] += ".ts";
+    if (!args[0].toLowerCase().endsWith(".ts")) args[0] += ".ts";
     if (!this.modules[args[0]]) {
       this.loadModule(args[0], <Discord.TextChannel>command.message.channel);
     } 
@@ -114,7 +114,7 @@ export default class ModuleLoader {
     const args = command.args;
     if (author.id !== "184165847940464641") return;
     if (!args[0]) return;
-    if (!args[0].toLowerCase().endsWith(".ts")) args[1] += ".ts";
+    if (!args[0].toLowerCase().endsWith(".ts")) args[0] += ".ts";
     if (!this.modules[args[0]]) {
       this.reloadModule(args[0], <Discord.TextChannel>command.message.channel);
     }
