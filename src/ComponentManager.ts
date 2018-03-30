@@ -62,8 +62,7 @@ export default class ModuleLoader {
 
   private onMessage(message: Discord.Message) {
     const author = message.author;
-    if (!message.cleanContent || message.author.bot) return;
-    if (!(message.channel instanceof Discord.TextChannel)) return;
+    if (!message.cleanContent || message.author.bot || !(message.channel instanceof Discord.TextChannel)) return;
     //if (!message.cleanContent[0].match(/[-!$%^&()+|~=`{}\[\]\\";'<>?,.\/]/)) return;
     const args = message.cleanContent.replace(/\n/g, "").split(" ").filter(c => ["", " "].indexOf(c) === -1);
     const command = args[0].substring(1);
