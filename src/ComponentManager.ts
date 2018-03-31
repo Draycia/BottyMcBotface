@@ -5,7 +5,6 @@ import KeyValueArray, { KeyValue, Command } from './Modules/KeyValue';
 
 export default class ModuleLoader {
   private bot: Discord.Client;
-  //private modules: any = {};
   private deinitFuncs: any = {};
   private moduleDir = './Modules/';
   private fileDir = './src' + this.moduleDir.substring(1);
@@ -122,12 +121,11 @@ export default class ModuleLoader {
   private onMessage(message: Discord.Message) {
     const author = message.author;
     if (!message.cleanContent || message.author.bot || !(message.channel instanceof Discord.TextChannel)) return;
-    //if (!message.cleanContent[0].match(/[-!$%^&()+|~=`{}\[\]\\";'<>?,.\/]/)) return;
-    const args = message.cleanContent.replace(/\n/g, "").split(" ").filter(c => ["", " "].indexOf(c) === -1);
-    const command = args[0].substring(1);
+    if (!message.cleanContent[0].match(/[-!$%^&+|~=\\;<>?\/]/)) return;
+    const args = message.cleanContent.split(" ");
+    const params = args[0].substring(1);
 
     if (!args) return;
-    //console.log(this.modules2.keys)
     const objs:any[] = []
     this.iModules.values.forEach((v,i) => {
       v.values.forEach(innerValue => {
@@ -138,7 +136,6 @@ export default class ModuleLoader {
     });
     args.shift();
     objs.forEach((value) => { if (value.isActive) value.handler({ author, args, message }); });
-
   }
 
 
@@ -146,8 +143,6 @@ export default class ModuleLoader {
     params.message.channel.send(`List of Modules:\n${this.iModules.keys.join(", ")}`);
   }
   public getModuleData(params: Params) {
-    console.log('get mod')
-    console.log(params.args[0])
       console.log(this.iModules.Item(params.args[0]));
       const send = this.iModules.Item(params.args[0]);
       if (send) params.message.channel.send("```json\n" + JSON.stringify(send, null, '  ') + "\n```");
@@ -163,7 +158,6 @@ export default class ModuleLoader {
   public onparamsActiveChange(params: Params) {
     const paramsObj = this.iModules.Item(params.args[0]).Item(params.args[1]);
     paramsObj.isActive = !paramsObj.isActive;
-    // params.message.channel.send(this.iModules.Item(params.args[0]).Item(params.args[1]).isActive);
     params.message.channel.send(`${paramsObj.isActive ? 'Activated' : 'Deactivated'} params \`${params.args[1]}\` from Module \`${params.args[0]}\`.`);
   }
   public listparamss(params: Params) {
@@ -181,9 +175,7 @@ export default class ModuleLoader {
     const author = params.author;
     const args = params.args;
     if (this.adminUsers.indexOf(author.id) === -1) return;
-    //if (!args) return;
-    //if (!args[0].toLowerCase().endsWith(".ts")) args[0] += ".ts";
-    //if (!this.modules[args[0]]) {
+    if (!args) return;
     if (this.iModules.hasKey(args[0])) {
       this.unloadModule(args[0], <Discord.TextChannel>params.message.channel);
     }
@@ -194,8 +186,6 @@ export default class ModuleLoader {
     const args = params.args;
     if (this.adminUsers.indexOf(author.id) === -1) return;
     if (!args[0]) return;
-    //if (!args[0].toLowerCase().endsWith(".ts")) args[0] += ".ts";
-    //if (!this.modules[args[0]]) {
     if (!this.iModules.hasKey(args[0])) {
       this.loadModule(args[0], <Discord.TextChannel>params.message.channel);
     } 
@@ -205,8 +195,6 @@ export default class ModuleLoader {
     const args = params.args;
     if (this.adminUsers.indexOf(author.id) === -1) return;
     if (!args[0]) return;
-    //if (!args[0].toLowerCase().endsWith(".ts")) args[0] += ".ts";
-    //if (!this.modules[args[0]]) {
     if (this.iModules.hasKey(args[0])) {
       this.reloadModule(args[0], <Discord.TextChannel>params.message.channel);
     }
@@ -226,8 +214,12 @@ export default class ModuleLoader {
       const ary = [ this.bot ];
       botModule.init(...ary);
       this.deinitFuncs[name] = botModule;
+      //this.modules2.Add(name, data);
+      console.log("-" + name)
       this.iModules.Add(name, new KeyValueArray<Command>());
       for(let mod in data) {
+        console.log(mod)
+        console.log("-> " + data[mod].isActive);
         this.iModules.Item(name).Add(mod, data[mod]);
       }
       if (channel) channel.send(`Loaded module **${name}**`);
@@ -235,8 +227,8 @@ export default class ModuleLoader {
   }
   private unloadModule(name: string, channel?: Discord.TextChannel) {
     this.deinitFuncs[name].deinit();
-    delete this.modules[name];
     delete this.modules2.toObj()[name];
+    this.modules2.Remove(name);
     this.iModules.Remove(name)
     delete this.deinitFuncs[name];
     if (channel) channel.send(`Unloaded module **${name}**`);
