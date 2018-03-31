@@ -171,7 +171,7 @@ export default class ModuleLoader {
   }
 
 
-  public unloadparams(params: Params) {
+  public unloadCommand(params: Params) {
     const author = params.author;
     const args = params.args;
     if (this.adminUsers.indexOf(author.id) === -1) return;
@@ -181,7 +181,7 @@ export default class ModuleLoader {
     }
     
   }
-  public loadparams(params: Params) {
+  public loadCommand(params: Params) {
     const author = params.author;
     const args = params.args;
     if (this.adminUsers.indexOf(author.id) === -1) return;
@@ -190,7 +190,7 @@ export default class ModuleLoader {
       this.loadModule(args[0], <Discord.TextChannel>params.message.channel);
     } 
   }
-  public reloadparams(params: Params) {
+  public reloadCommand(params: Params) {
     const author = params.author;
     const args = params.args;
     if (this.adminUsers.indexOf(author.id) === -1) return;
@@ -212,8 +212,10 @@ export default class ModuleLoader {
         data = { name: { } };
       }
       const ary = [ this.bot ];
-      botModule.init(...ary);
-      this.deinitFuncs[name] = botModule;
+      if (typeof botModule.init !== "undefined")
+        botModule.init(...ary);
+      if (typeof botModule.deinit !== "undefined")
+        this.deinitFuncs[name] = botModule;
       //this.modules2.Add(name, data);
       console.log("-" + name)
       this.iModules.Add(name, new KeyValueArray<Command>());
@@ -226,11 +228,12 @@ export default class ModuleLoader {
     });
   }
   private unloadModule(name: string, channel?: Discord.TextChannel) {
-    this.deinitFuncs[name].deinit();
+    if (this.deinitFuncs[name])
+      this.deinitFuncs[name].deinit();
+    delete this.deinitFuncs[name];
     delete this.modules2.toObj()[name];
     this.modules2.Remove(name);
     this.iModules.Remove(name)
-    delete this.deinitFuncs[name];
     if (channel) channel.send(`Unloaded module **${name}**`);
   }
   private reloadModule(name: string, channel?: Discord.TextChannel) {
