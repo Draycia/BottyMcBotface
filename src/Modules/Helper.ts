@@ -1,6 +1,6 @@
 import Discord = require('discord.js');
-import Command from './Command';
-import KeyValueArray, { Cmd } from './KeyValue';
+import Params from './Command';
+import KeyValueArray, { Command } from './KeyValue';
 
 
 export default class Helper {
@@ -27,7 +27,7 @@ export default class Helper {
     public deinit() {
         console.log(`'${this.className}' module unloaded from file '${this.fileName}'!`);
     }
-    public testCommand(command: Command) {
+    public testCommand(command: Params) {
         command.message.channel.send("Help! Args: " + command.args.toString());
     }
 }
