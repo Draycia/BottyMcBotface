@@ -225,12 +225,14 @@ export default class ModuleLoader {
         console.log("-> " + data[mod].isActive);
         this.iModules.Item(name).Add(mod, data[mod]);
       }
+      //this.modules[name] = data;
       if (channel) channel.send(`Loaded module **${name}**`);
     });
   }
   private unloadModule(name: string, channel?: Discord.TextChannel) {
     if (this.deinitFuncs[name])
       this.deinitFuncs[name].deinit();
+    //delete this.modules[name];
     delete this.deinitFuncs[name];
     delete this.modules2.toObj()[name];
     this.modules2.Remove(name);
