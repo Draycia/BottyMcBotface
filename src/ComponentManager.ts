@@ -14,7 +14,7 @@ export default class ModuleLoader {
 
   private iModules: KeyValueArray<KeyValueArray<Command>> = new KeyValueArray<KeyValueArray<Command>>();
 
-  private oldparamss: any = {
+  private managerCommands: any = {
     "load": {
       aliases: [ "load" ],
       description: "Loads the specified Module if currently unloaded.",
@@ -89,7 +89,7 @@ export default class ModuleLoader {
   }
 }
 
-
+  
   constructor(bot: Discord.Client) {
     console.log("Module Loader loaded. Giggity.");
 
@@ -101,11 +101,11 @@ export default class ModuleLoader {
   private ignores: string[] = ["params.ts", "KeyValue.ts"]
   private onBot() {
     const fs = require('fs');
-    this.modules2.Add("ComponentManager", this.oldparamss);
+    this.modules2.Add("ComponentManager", this.managerCommands);
     this.iModules.Add("ComponentManager", new KeyValueArray<Command>());
-    console.log("- ComponentManager")
-    for(let mod in this.oldparamss) {
-      console.log(mod)
+    // console.log("- ComponentManager")
+    for(let mod in this.managerCommands) {
+      // console.log(mod)
       this.iModules.Item("ComponentManager").Add(mod, this.oldparamss[mod]);
     }
 
@@ -118,6 +118,7 @@ export default class ModuleLoader {
     });
   } 
 
+  
   private onMessage(message: Discord.Message) {
     const author = message.author;
     if (!message.cleanContent || message.author.bot || !(message.channel instanceof Discord.TextChannel)) return;
