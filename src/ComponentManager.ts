@@ -18,7 +18,7 @@ export default class ModuleLoader {
     "load": {
       aliases: [ "load" ],
       description: "Loads the specified Module if currently unloaded.",
-      handler: this.loadparams.bind(this),
+      handler: this.loadCommand.bind(this),
       prefix: "~",
       isActive: true,
       isPrivileged: true,
@@ -27,7 +27,7 @@ export default class ModuleLoader {
     "unload": {
     aliases: [ "unload", "uload" ],
     description: "Unloads the specified Module if it is currently loaded.",
-    handler: this.unloadparams.bind(this),
+    handler: this.unloadCommand.bind(this),
     prefix: "~",
     isActive: true,
     isPrivileged: true,
@@ -36,7 +36,7 @@ export default class ModuleLoader {
   "reload": {
     aliases: [ "reload", "rload" ],
     description: "Unloads then loads the specified Module.",
-    handler: this.reloadparams.bind(this),
+    handler: this.reloadCommand.bind(this),
     prefix: "~",
     isActive: true,
     isPrivileged: true,
