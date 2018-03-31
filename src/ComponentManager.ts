@@ -125,15 +125,18 @@ export default class ModuleLoader {
         data = { name: { } };
       }
       const ary = [ this.bot ];
-      botModule.init(...ary);
-      this.deinitFuncs[name] = botModule;
+      if (typeof botModule.init !== "undefined")
+        botModule.init(...ary);
+      if (typeof botModule.deinit !== "undefined")
+        this.deinitFuncs[name] = botModule;
       this.modules[name] = data;
       if (channel) channel.send(`Loaded module **${name}**`);
     });
   }
 
   private unloadModule(name: string, channel?: Discord.TextChannel) {
-    this.deinitFuncs[name].deinit();
+    if (this.deinitFuncs[name])
+      this.deinitFuncs[name].deinit();
     delete this.modules[name];
     delete this.deinitFuncs[name];
     if (channel) channel.send(`Unloaded module **${name}**`);
