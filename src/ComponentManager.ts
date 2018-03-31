@@ -106,7 +106,7 @@ export default class ModuleLoader {
     // console.log("- ComponentManager")
     for(let mod in this.managerCommands) {
       // console.log(mod)
-      this.iModules.Item("ComponentManager").Add(mod, this.oldparamss[mod]);
+      this.iModules.Item("ComponentManager").Add(mod, this.managerCommands[mod]);
     }
 
     fs.readdir(this.fileDir, (err: Error, files: string[]) => {
