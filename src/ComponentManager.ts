@@ -244,16 +244,16 @@ export default class ModuleLoader {
     if (channel) channel.send(`Reloaded module **${name}**`);
   }
 
-  // Credit for getParamNames(), STRIP_COMMENTS, && ARGUMENT_NAMES goes to
-  // https://stackoverflow.com/a/9924463
-  // Why did you null check with === though?
-  private STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
-  private ARGUMENT_NAMES = /([^\s,]+)/g;
+  // // Credit for getParamNames(), STRIP_COMMENTS, && ARGUMENT_NAMES goes to
+  // // https://stackoverflow.com/a/9924463
+  // // Why did you null check with === though?
+  // private STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
+  // private ARGUMENT_NAMES = /([^\s,]+)/g;
 
-  private getParamNames(func: Function) {
-    var fnStr = func.toString().replace(this.STRIP_COMMENTS, '');
-    var result = fnStr.slice(fnStr.indexOf('(') + 1, fnStr.indexOf(')')).match(this.ARGUMENT_NAMES);
-    if (!result) result = [];
-    return result;
-  }
+  // private getParamNames(func: Function) {
+  //   var fnStr = func.toString().replace(this.STRIP_COMMENTS, '');
+  //   var result = fnStr.slice(fnStr.indexOf('(') + 1, fnStr.indexOf(')')).match(this.ARGUMENT_NAMES);
+  //   if (!result) result = [];
+  //   return result;
+  // }
 }
