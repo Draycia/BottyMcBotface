@@ -69,10 +69,10 @@ export default class ModuleLoader {
     isPrivileged: true,
     allowedUsers: this.adminUsers
   },
-  "list_paramss": {
-    aliases: [ "list_paramss", "lcmds", "lparamss", "listcmds" ],
+  "list_params": {
+    aliases: [ "list_params", "lcmds", "lparams", "listcmds" ],
     description: "Lists all active paramss.",
-    handler: this.listparamss.bind(this),
+    handler: this.listParams.bind(this),
     prefix: "~",
     isActive: true,
     isPrivileged: true,
@@ -89,7 +89,6 @@ export default class ModuleLoader {
   }
 }
 
-  
   constructor(bot: Discord.Client) {
     console.log("Module Loader loaded. Giggity.");
 
@@ -118,7 +117,6 @@ export default class ModuleLoader {
     });
   } 
 
-  
   private onMessage(message: Discord.Message) {
     const author = message.author;
     if (!message.cleanContent || message.author.bot || !(message.channel instanceof Discord.TextChannel)) return;
@@ -139,15 +137,16 @@ export default class ModuleLoader {
     objs.forEach((value) => { if (value.isActive) value.handler({ author, args, message }); });
   }
 
-
   public listModules(params: Params) {
     params.message.channel.send(`List of Modules:\n${this.iModules.keys.join(", ")}`);
   }
+
   public getModuleData(params: Params) {
       console.log(this.iModules.Item(params.args[0]));
       const send = this.iModules.Item(params.args[0]);
       if (send) params.message.channel.send("```json\n" + JSON.stringify(send, null, '  ') + "\n```");
   }
+
   public editModuleData(params: Params) {
     const [moduleName, paramsName, objectProperty] = params.args.slice(0, 3);
     const propertyValue = params.args.slice(3).join(" ");
@@ -155,13 +154,13 @@ export default class ModuleLoader {
     params.message.channel.send(`Updated Module \`${moduleName}\`'s \`${paramsName}\` params property \`${objectProperty}\` to \`"${propertyValue}"\` \n \`\`\`json\n"${paramsName}": \{\n  . . .\n  "${objectProperty}": "${propertyValue}"\,\n  . . .\n\}\`\`\``);
   }
 
-
   public onparamsActiveChange(params: Params) {
     const paramsObj = this.iModules.Item(params.args[0]).Item(params.args[1]);
     paramsObj.isActive = !paramsObj.isActive;
     params.message.channel.send(`${paramsObj.isActive ? 'Activated' : 'Deactivated'} params \`${params.args[1]}\` from Module \`${params.args[0]}\`.`);
   }
-  public listparamss(params: Params) {
+
+  public listParams(params: Params) {
     let paramss: any[] = [];
     this.iModules.values.forEach(value => {
       value.values.forEach(valueInner => {
@@ -171,7 +170,6 @@ export default class ModuleLoader {
     params.message.channel.send(`List of params:\n${paramss.map((value) => `**\`${value.name}${value.obj.aliases.length !== 0 ? ` (${value.obj.aliases.join(', ')})` : ''}\: \`**_\`${value.obj.description}\`_`).join('\n')}`);
   }
 
-
   public unloadCommand(params: Params) {
     const author = params.author;
     const args = params.args;
@@ -180,8 +178,8 @@ export default class ModuleLoader {
     if (this.iModules.hasKey(args[0])) {
       this.unloadModule(args[0], <Discord.TextChannel>params.message.channel);
     }
-    
   }
+
   public loadCommand(params: Params) {
     const author = params.author;
     const args = params.args;
@@ -191,6 +189,7 @@ export default class ModuleLoader {
       this.loadModule(args[0], <Discord.TextChannel>params.message.channel);
     } 
   }
+
   public reloadCommand(params: Params) {
     const author = params.author;
     const args = params.args;
@@ -200,7 +199,6 @@ export default class ModuleLoader {
       this.reloadModule(args[0], <Discord.TextChannel>params.message.channel);
     }
   }
-
 
   private loadModule(name: string, channel?: Discord.TextChannel) {
     if (name.endsWith('.ts')) name = name.substr(0,name.lastIndexOf('.'));
@@ -229,6 +227,7 @@ export default class ModuleLoader {
       if (channel) channel.send(`Loaded module **${name}**`);
     });
   }
+
   private unloadModule(name: string, channel?: Discord.TextChannel) {
     if (this.deinitFuncs[name])
       this.deinitFuncs[name].deinit();
