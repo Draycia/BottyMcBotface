@@ -212,7 +212,7 @@ export default class ModuleLoader {
       }
       const ary = [ this.bot ];
       if (typeof botModule.init !== "undefined")
-        botModule.init(...ary);
+        botModule.init({ bot: this.bot, managerCommands: this.managerCommands, deinitFunctions: this.deinitFuncs, admins: this.adminUsers });
       if (typeof botModule.deinit !== "undefined")
         this.deinitFuncs[name] = botModule;
       //this.modules2.Add(name, data);
