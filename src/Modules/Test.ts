@@ -1,7 +1,7 @@
 import Discord = require("discord.js");
 import Command from "./Command";
 
-export default class HelloWorld {
+export default class Test {
   private bot: Discord.Client;
 
   public register() {
@@ -16,14 +16,12 @@ export default class HelloWorld {
   }
 
   public init(bot: Discord.Client) {
-    if (!bot) console.log("Bot is null :(");
-    console.log("Hello World module loaded!");
-
+    console.log("Test module loaded!");
     this.bot = bot;
   }
 
   public deinit() {
-    console.log("Hello World module unloaded!");
+    console.log("Test module unloaded!");
   }
 
   public testCommand(command: Command) {
