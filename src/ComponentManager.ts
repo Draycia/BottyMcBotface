@@ -128,8 +128,8 @@ export default class ModuleLoader {
     const objs: any[] = []
     this.iModules.values.forEach((v, i) => {
       v.values.forEach(innerValue => {
-       if(innerValue.aliases?(innerValue.aliases.indexOf(params) !== -1):false && innerValue.prefix === args[0][0]) {
-          if (innerValue.isActive === true) objs.push(innerValue);
+        if (innerValue.aliases ? (innerValue.aliases.includes(params)) : false && innerValue.prefix === args[0][0]) {
+          if (innerValue.isActive === true)  objs.push(innerValue);
         }
       });
     });
