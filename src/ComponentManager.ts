@@ -16,7 +16,7 @@ export default class ModuleLoader {
 
   private managerCommands: any = {
     "load": {
-      aliases: [ "load" ],
+      aliases: ["load"],
       description: "Loads the specified Module if currently unloaded.",
       handler: this.loadCommand.bind(this),
       prefix: "~",
@@ -103,7 +103,7 @@ export default class ModuleLoader {
     this.modules2.Add("ComponentManager", this.managerCommands);
     this.iModules.Add("ComponentManager", new KeyValueArray<Command>());
     // console.log("- ComponentManager")
-    for(let mod in this.managerCommands) {
+    for (let mod in this.managerCommands) {
       // console.log(mod)
       this.iModules.Item("ComponentManager").Add(mod, this.managerCommands[mod]);
     }
@@ -115,7 +115,7 @@ export default class ModuleLoader {
         this.loadModule(file);
       });
     });
-  } 
+  }
 
   private onMessage(message: Discord.Message) {
     const author = message.author;
@@ -125,8 +125,8 @@ export default class ModuleLoader {
     const params = args[0].substring(1);
 
     if (!args) return;
-    const objs:any[] = []
-    this.iModules.values.forEach((v,i) => {
+    const objs: any[] = []
+    this.iModules.values.forEach((v, i) => {
       v.values.forEach(innerValue => {
        if(innerValue.aliases?(innerValue.aliases.indexOf(params) !== -1):false && innerValue.prefix === args[0][0]) {
           if (innerValue.isActive === true) objs.push(innerValue);
@@ -142,9 +142,9 @@ export default class ModuleLoader {
   }
 
   public getModuleData(params: Params) {
-      console.log(this.iModules.Item(params.args[0]));
-      const send = this.iModules.Item(params.args[0]);
-      if (send) params.message.channel.send("```json\n" + JSON.stringify(send, null, '  ') + "\n```");
+    console.log(this.iModules.Item(params.args[0]));
+    const send = this.iModules.Item(params.args[0]);
+    if (send) params.message.channel.send("```json\n" + JSON.stringify(send, null, '  ') + "\n```");
   }
 
   public editModuleData(params: Params) {
@@ -164,7 +164,7 @@ export default class ModuleLoader {
     let paramss: any[] = [];
     this.iModules.values.forEach(value => {
       value.values.forEach(valueInner => {
-        paramss.push({name: value.keys[value.values.indexOf(valueInner)], obj: valueInner});
+        paramss.push({ name: value.keys[value.values.indexOf(valueInner)], obj: valueInner });
       });
     });
     params.message.channel.send(`List of params:\n${paramss.map((value) => `**\`${value.name}${value.obj.aliases.length !== 0 ? ` (${value.obj.aliases.join(', ')})` : ''}\: \`**_\`${value.obj.description}\`_`).join('\n')}`);
@@ -187,7 +187,7 @@ export default class ModuleLoader {
     if (!args[0]) return;
     if (!this.iModules.hasKey(args[0])) {
       this.loadModule(args[0], <Discord.TextChannel>params.message.channel);
-    } 
+    }
   }
 
   public reloadCommand(params: Params) {
@@ -201,16 +201,16 @@ export default class ModuleLoader {
   }
 
   private loadModule(name: string, channel?: Discord.TextChannel) {
-    if (name.endsWith('.ts')) name = name.substr(0,name.lastIndexOf('.'));
+    if (name.endsWith('.ts')) name = name.substr(0, name.lastIndexOf('.'));
     import(this.moduleDir + name).then(importedModule => {
       let botModule = new importedModule.default;
       let data;
       if (typeof botModule.register !== "undefined") {
         data = botModule.register();
       } else {
-        data = { name: { } };
+        data = { name: {} };
       }
-      const ary = [ this.bot ];
+      const ary = [this.bot];
       if (typeof botModule.init !== "undefined")
         botModule.init({ bot: this.bot, managerCommands: this.managerCommands, deinitFunctions: this.deinitFuncs, admins: this.adminUsers });
       if (typeof botModule.deinit !== "undefined")
@@ -221,6 +221,7 @@ export default class ModuleLoader {
       for(let mod in data) {
         console.log(mod)
         console.log("-> " + data[mod].isActive);
+      for (let mod in data) {
         this.iModules.Item(name).Add(mod, data[mod]);
       }
       //this.modules[name] = data;
