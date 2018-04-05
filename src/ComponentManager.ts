@@ -97,7 +97,7 @@ export default class ModuleLoader {
     this.bot.on("message", this.onMessage.bind(this));
   }
 
-  private ignores: string[] = ["params.ts", "KeyValue.ts"]
+  private ignores: string[] = ["params.ts", "KeyValue.ts", "Command.ts"];
   private onBot() {
     const fs = require('fs');
     this.modules2.Add("ComponentManager", this.managerCommands);
