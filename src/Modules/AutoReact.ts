@@ -52,7 +52,7 @@ export default class HelloWorld {
       const emojiRegex = /\<\:[a-zA-Z0-9_]{1,50}\:[0-9]{18}\>/g;
       const emojis = message.content.toString().match(emojiRegex);
       if (!emojis) return;
-      emojis.forEach(emoji => { if (emoji.toLowerCase().match(/(think|thonk)/g)) hasThinking = true });
+      emojis.forEach((emoji: string) => { if (emoji.toLowerCase().match(/(think|thonk)/g)) hasThinking = true });
       }
     if (hasThinking) {
       const guildEmoji = message.guild.emojis.filter((x: Discord.Emoji) => x.name.includes("thinking")).random();
@@ -65,8 +65,8 @@ export default class HelloWorld {
 
   public toggleReact(command: Command) {
     let message = this.ignoreUsers.includes(command.author.id) ? "I will now emoji react to your messages." : "I will no longer emoji react to your messages";
-    if (this.ignoreUsers.includes(command.author.id)) console.log("in array");
-    //if (this.ignoreUsers.includes(command.author.id)) this.ignoreUsers = this.ignoreUsers.splice(this.ignoreUsers.indexOf(command.author.id), 1);
+    //if (this.ignoreUsers.includes(command.author.id)) console.log("in array");
+    if (this.ignoreUsers.includes(command.author.id)) this.ignoreUsers = this.ignoreUsers.splice(this.ignoreUsers.indexOf(command.author.id) + 1, 1);
     else this.ignoreUsers.push(command.author.id);
     command.message.reply(message);
   }
