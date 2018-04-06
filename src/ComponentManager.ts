@@ -358,7 +358,7 @@ export default class ComponentManager {
           //console.log(mod)
           //fromFile ? console.log("-> " + this.iMods.Item(name).values[parseInt(mod)].isActive) : null;
           //fromFile ? console.log(botModule[this.iMods.Item(name).values[parseInt(mod)].handlerName]) : null;
-          fromFile ? this.iMods.Item(name).values[parseInt(mod)].handler = botModule[this.iMods.Item(name).values[parseInt(mod)].handlerName] : this.iMods.Item(name).Add(mod, data[mod]);
+          fromFile ? this.iMods.Item(name).values[parseInt(mod)].handler = botModule[this.iMods.Item(name).values[parseInt(mod)].handlerName].bind(botModule) : this.iMods.Item(name).Add(mod, data[mod]);
         }
         //this.modules[name] = data;
         if (channel) channel.send(`Loaded module **${name}**`);
