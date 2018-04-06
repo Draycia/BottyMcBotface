@@ -1,0 +1,34 @@
+[
+    {
+        "name": "test",
+        "aliases": [
+            "test",
+            "tost",
+            "tust"
+        ],
+        "description": "Test command",
+        "handlerName": "testCommand",
+        "prefix": "$l/prefix",
+        "isActive": true,
+        "isPrivileged": null,
+        "allowedUsers": "$l/adminUsers",
+        "stopPropagation": null,
+        "fallbackName": null
+    },
+    {
+        "name": "test2",
+        "aliases": [
+            "test2",
+            "tost2",
+            "tust2"
+        ],
+        "description": "Test command 2",
+        "handlerName": "testCommand",
+        "prefix": "$l/prefix",
+        "isActive": true,
+        "isPrivileged": null,
+        "allowedUsers": "$l/adminUsers",
+        "stopPropagation": null,
+        "fallbackName": null
+    }
+]

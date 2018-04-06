@@ -1,0 +1,172 @@
+[{
+        "name": "load",
+        "aliases": [
+            "load"
+        ],
+        "description": "Loads the specified Module if currently unloaded.",
+        "handlerName": "loadCommand",
+        "prefix": "~",
+        "isActive": true,
+        "isPrivileged": true,
+        "allowedUsers": [
+            "184165847940464641",
+            "214775036119089156"
+        ],
+        "stopPropagation": true,
+        "fallbackName": null
+    },
+    {
+        "name": "unload",
+        "aliases": [
+            "unload",
+            "uload"
+        ],
+        "description": "Unloads the specified Module if it is currently loaded.",
+        "handlerName": "unloadCommand",
+        "prefix": "~",
+        "isActive": true,
+        "isPrivileged": true,
+        "allowedUsers": [
+            "184165847940464641",
+            "214775036119089156"
+        ],
+        "stopPropagation": true,
+        "fallbackName": null
+    },
+    {
+        "name": "reload",
+        "aliases": [
+            "reload",
+            "rload"
+        ],
+        "description": "Unloads then loads the specified Module.",
+        "handlerName": "reloadCommand",
+        "prefix": "~",
+        "isActive": true,
+        "isPrivileged": true,
+        "allowedUsers": [
+            "184165847940464641",
+            "214775036119089156"
+        ],
+        "stopPropagation": true,
+        "fallbackName": null
+    },
+    {
+        "name": "list_modules",
+        "aliases": [
+            "list_modules",
+            "lmod",
+            "lmodules",
+            "listmod"
+        ],
+        "description": "Lists all loaded Modules.",
+        "handlerName": "listModules",
+        "prefix": "~",
+        "isActive": true,
+        "isPrivileged": true,
+        "allowedUsers": [
+            "184165847940464641",
+            "214775036119089156"
+        ],
+        "stopPropagation": true,
+        "fallbackName": null
+    },
+    {
+        "name": "get_module",
+        "aliases": [
+            "get_module",
+            "gmod",
+            "gmodule",
+            "getmod"
+        ],
+        "description": "Gets the data object for the specified Module.",
+        "handlerName": "getModuleData",
+        "prefix": "~",
+        "isActive": true,
+        "isPrivileged": true,
+        "allowedUsers": [
+            "184165847940464641",
+            "214775036119089156"
+        ],
+        "stopPropagation": true,
+        "fallbackName": null
+    },
+    {
+        "name": "edit_module",
+        "aliases": [
+            "edit_module",
+            "emod",
+            "emodule",
+            "editmod"
+        ],
+        "description": "Modify a given Module data object property to a specified value.",
+        "handlerName": "editModuleData",
+        "prefix": "~",
+        "isActive": true,
+        "isPrivileged": true,
+        "allowedUsers": [
+            "184165847940464641",
+            "214775036119089156"
+        ],
+        "stopPropagation": true,
+        "fallbackName": null
+    },
+    {
+        "name": "list_commands",
+        "aliases": [
+            "list_commands",
+            "lcmds",
+            "lcommands",
+            "listcmds"
+        ],
+        "description": "Lists all active commands.",
+        "handlerName": "listCommands",
+        "prefix": "~",
+        "isActive": true,
+        "isPrivileged": true,
+        "allowedUsers": [
+            "184165847940464641",
+            "214775036119089156"
+        ],
+        "stopPropagation": true,
+        "fallbackName": null
+    },
+    {
+        "name": "toggle_command",
+        "aliases": [
+            "toggle_command",
+            "togglecmd",
+            "tglcmd"
+        ],
+        "description": "Toggles the command's current state.",
+        "handlerName": "onCommandsActiveChange",
+        "prefix": "~",
+        "isActive": true,
+        "isPrivileged": true,
+        "allowedUsers": [
+            "184165847940464641",
+            "214775036119089156"
+        ],
+        "stopPropagation": true,
+        "fallbackName": null
+    },
+    {
+        "name": "save_modules",
+        "aliases": [
+            "save_modules",
+            "savemod",
+            "smod"
+        ],
+        "description": "Save Module commands.",
+        "handlerName": "savemodules",
+        "prefix": "~",
+        "isActive": true,
+        "isPrivileged": true,
+        "allowedUsers": [
+            "184165847940464641",
+            "214775036119089156"
+        ],
+        "stopPropagation": true,
+        "fallbackName": null
+    }
+]

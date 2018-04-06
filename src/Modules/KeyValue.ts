@@ -1,5 +1,6 @@
 export interface KeyValue<V> {
-    [Key: string]: {Value: V}
+    Key: string
+    Value: V
 }
 export default class KeyValueArray<V> {
     public readonly keys: Array<string> = new Array<string>();
@@ -8,20 +9,12 @@ export default class KeyValueArray<V> {
     constructor(items?: any[][]) {
         if (!items) return;
         items.forEach((i) => {
-            this.keys.push(<string> i[0]);
-            this.values.push(<V> i[1]);
+            this.keys.push(<string>i[0]);
+            this.values.push(<V>i[1]);
         });
     }
-    public toObj(): any {
-        const jsontemp: any = {};
-        this.keys.forEach(key => {
-            const value = this.Item(key);
-            jsontemp[key] = value
-        });
-        return jsontemp;
-    }
-    private toKeyValue(key: string, value: V|null): KeyValue<V> {
-        return {[key]: { Value: <V>value}};
+    private toKeyValue(key: string, value: V | null): KeyValue<V> {
+        return { Key: key, Value: <V>value };
     }
     public Add(key: string, value: V): KeyValue<V> {
         if (this.keys.indexOf(key) !== -1) return this.toKeyValue(key, null);
@@ -56,8 +49,16 @@ export interface Command {
     aliases: string[]
     description: string
     handler: Function
+    handlerName: string
     prefix: string
     isActive: boolean
     isPrivileged: boolean
     allowedUsers: string[] | null | undefined
+    stopPropagation: boolean
+    fallback: Function | null
+    fallbackName: string | null
+}
+export interface DataReference {
+    reference: string
+    data: any
 }

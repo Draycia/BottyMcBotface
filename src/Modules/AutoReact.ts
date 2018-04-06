@@ -1,44 +1,14 @@
 import Discord = require("discord.js");
 import Command from "./Command";
 
-export default class HelloWorld {
+export default class AutoReact {
   private bot: Discord.Client;
   private thinkingEmojis: Discord.Emoji[] = [];
   private responseWords: string[] = ["thonk", "think"];
   private responseEmoji: string[] = [];
   private ignoreUsers: string[] = [];
   //private ignoreUsers: string[] = ["184165847940464641"];
-
   private originalThinkosOnly = false;
-
-  public register() {
-    return {
-      "refresh_thinking": {
-        aliases: ["refresh_thinking"],
-        description: "Reloads thinking emojis.",
-        handler: this.refreshThinkingEmojis.bind(this),
-        prefix: "!",
-        isActive: true,
-        isPrivileged: false
-      },
-      "toggle_react": {
-        aliases: ["toggle_react"],
-        description: "Toggles if botty will send emoji reactions to your messages. Default: true.",
-        handler: this.toggleReact.bind(this),
-        prefix: "!",
-        isActive: true,
-        isPrivileged: false
-      },
-      "toggle_default_thinking": {
-        aliases: ["toggle_default_thinking"],
-        description: "Toggles if botty will react with custom emojis or only with 🤔. Default: true.",
-        handler: this.toggleOriginalThinkos.bind(this),
-        prefix: "~",
-        isActive: true,
-        isPrivileged: false
-      }
-    }
-  }
 
   public init(obj: any) {
     console.log("Auto React module loaded!");
@@ -55,8 +25,9 @@ export default class HelloWorld {
     if (this.ignoreUsers.includes(message.author.id)) return;
     let hasThinking = false;
 
-    if (message.content.toString().includes("🤔")) hasThinking = true;
-    else {
+    if (message.content.toString().includes("🤔")) {
+      hasThinking = true;
+    } else {
       const emojiRegex = /\<\:[a-zA-Z0-9_]{1,50}\:[0-9]{18}\>/g;
       const emojis = message.content.toString().match(emojiRegex);
       if (!emojis) return;

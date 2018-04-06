@@ -1,17 +1,17 @@
 import Botty from "./Botty";
 
-import ApiStatus from "./ApiStatus";
-import AutoReact from "./AutoReact";
-import ForumReader from "./ForumReader";
-import Info from "./Info";
-import JoinMessaging from "./JoinMessaging";
-import KeyFinder from "./KeyFinder";
-import Logger from "./Logger";
-import OfficeHours from "./OfficeHours";
-import RiotAPILibraries from "./RiotAPILibraries";
-import Techblog from "./Techblog";
-import Uptime from "./Uptime";
-import VersionChecker from "./VersionChecker";
+// import ApiStatus from "./ApiStatus";
+// import AutoReact from "./AutoReact";
+// import ForumReader from "./ForumReader";
+// import Info from "./Info";
+// import JoinMessaging from "./JoinMessaging";
+// import KeyFinder from "./KeyFinder";
+// import Logger from "./Logger";
+// import OfficeHours from "./OfficeHours";
+// import RiotAPILibraries from "./RiotAPILibraries";
+// import Techblog from "./Techblog";
+// import Uptime from "./Uptime";
+// import VersionChecker from "./VersionChecker";
 import ComponentManager from "./ComponentManager";
 
 import { fileBackedObject } from "./FileBackedObject";
@@ -19,39 +19,39 @@ import { PersonalSettings } from "./PersonalSettings";
 import { SharedSettings } from "./SharedSettings";
 
 declare global {
-    interface Array<T> {
-        includes(searchElement: T): boolean;
-    }
+   interface Array<T> {
+      includes(searchElement: T): boolean;
+   }
 }
 
 // Add Array includes polyfill if needed
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/includes#Polyfill
 if (!Array.prototype.includes) {
-    Array.prototype.includes = function (searchElement /*, fromIndex*/) {
-        'use strict';
-        var O = Object(this);
-        var len = parseInt(O.length, 10) || 0;
-        if (len === 0) {
-            return false;
-        }
-        var n = parseInt(arguments[1], 10) || 0;
-        var k;
-        if (n >= 0) {
-            k = n;
-        } else {
-            k = len + n;
-            if (k < 0) { k = 0; }
-        }
-        var currentElement;
-        while (k < len) {
-            currentElement = O[k];
-            if (searchElement === currentElement) { // NaN !== NaN
-                return true;
-            }
-            k++;
-        }
-        return false;
-    };
+   Array.prototype.includes = function (searchElement /*, fromIndex*/) {
+      'use strict';
+      var O = Object(this);
+      var len = parseInt(O.length, 10) || 0;
+      if (len === 0) {
+         return false;
+      }
+      var n = parseInt(arguments[1], 10) || 0;
+      var k;
+      if (n >= 0) {
+         k = n;
+      } else {
+         k = len + n;
+         if (k < 0) { k = 0; }
+      }
+      var currentElement;
+      while (k < len) {
+         currentElement = O[k];
+         if (searchElement === currentElement) { // NaN !== NaN
+            return true;
+         }
+         k++;
+      }
+      return false;
+   };
 }
 
 // Load and initialise settings
