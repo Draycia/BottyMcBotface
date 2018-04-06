@@ -1,0 +1,44 @@
+[
+    {
+        "name": "refresh_thinking",
+        "aliases": [
+            "refresh_thinking"
+        ],
+        "description": "Reloads thinking emojis.",
+        "handlerName": "refreshThinkingEmojis",
+        "prefix": "$l/prefix",
+        "isActive": true,
+        "isPrivileged": false,
+        "allowedUsers": [ ],
+        "stopPropagation": true,
+        "fallbackName": null
+    },
+    {
+        "name": "toggle_react",
+        "aliases": [
+            "toggle_react"
+        ],
+        "description": "Toggles if botty will send emoji reactions to your messages. Default is true.",
+        "handlerName": "toggleReact",
+        "prefix": "$l/prefix",
+        "isActive": true,
+        "isPrivileged": false,
+        "allowedUsers": [ ],
+        "stopPropagation": true,
+        "fallbackName": null
+    },
+    {
+        "name": "toggle_default_thinking",
+        "aliases": [
+            "toggle_default_thinking"
+        ],
+        "description": "Toggles if botty will react with custom emojis or only with �. Default is true.",
+        "handlerName": "toggleOriginalThinkos",
+        "prefix": "$l/prefix",
+        "isActive": true,
+        "isPrivileged": false,
+        "allowedUsers": [ ],
+        "stopPropagation": true,
+        "fallbackName": null
+    }
+]
