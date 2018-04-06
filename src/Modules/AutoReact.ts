@@ -25,7 +25,7 @@ export default class AutoReact {
     if (this.ignoreUsers.includes(message.author.id)) return;
     let hasThinking = false;
 
-    if (message.content.toString().includes("�")) {
+    if (message.content.toString().includes("🤔")) {
       hasThinking = true;
     } else {
       const emojiRegex = /\<\:[a-zA-Z0-9_]{1,50}\:[0-9]{18}\>/g;
@@ -50,7 +50,7 @@ export default class AutoReact {
   }
 
   public toggleOriginalThinkos(command: Command) {
-    let message = this.originalThinkosOnly ? "I will now react to thinkos with custom emojis." : "I will only react to thinkos with � now.";
+    let message = this.originalThinkosOnly ? "I will now react to thinkos with custom emojis." : "I will only react to thinkos with 🤔 now.";
     this.originalThinkosOnly = !this.originalThinkosOnly;
     command.message.reply(message)
   }

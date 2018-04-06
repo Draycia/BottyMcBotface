@@ -163,7 +163,7 @@ export default class ComponentManager {
 
   }
 
-
+  
   private onMessage(message: Discord.Message) {
     //console.log(this.iMods)
     const author = message.author;
@@ -195,7 +195,6 @@ export default class ComponentManager {
     });
   }
 
-
   public listModules(callerDataObj: CallerDataObject) {
     callerDataObj.message.channel.send(`List of Modules:\n${this.iMods.keys.join(", ")}`);
   }
@@ -211,6 +210,7 @@ export default class ComponentManager {
     if (propertyValue === null || propertyValue === undefined) return;
     (<any>this.iMods.Item(moduleName).values[this.iMods.Item(moduleName).keys.indexOf(commandName)])[objectProperty] = propertyValue;
     callerDataObj.message.channel.send(`Updated Module \`${moduleName}\`'s \`${commandName}\` command property \`${objectProperty}\` to \`"${propertyValue}"\` \n \`\`\`json\n"${commandName}": \{\n  . . .\n  "${objectProperty}": "${propertyValue}"\,\n  . . .\n\}\`\`\``);
+
   }
   public propertyValueParser(source: string): any {
     const matches = new RegExp(/^\(([^)]+)\)/).exec(source);
@@ -266,7 +266,6 @@ export default class ComponentManager {
     if (this.iMods.hasKey(args[0])) {
       this.unloadModule(args[0], <Discord.TextChannel>callerDataObj.message.channel);
     }
-
   }
   public loadCommand(callerDataObj: CallerDataObject) {
     const author = callerDataObj.author;

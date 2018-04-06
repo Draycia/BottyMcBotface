@@ -10,7 +10,6 @@ export default class Test {
     if (!obj.bot) console.log("Bot is null :(");
     console.log(`'${this.className}' module loaded from file '${this.fileName}'!`);
     console.log("Test module loaded!");
-
     this.bot = obj.bot;
   }
 
