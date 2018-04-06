@@ -7,17 +7,18 @@ export default class Test {
   public register() {
     return {
       "test": {
-        aliases: ["tost", "tust"],
+        aliases: ["test", "tost", "tust"],
         description: "Refreshes reactions.",
         handler: this.testCommand,
-        prefix: "~"
+        prefix: "~",
+        isActive: true
       }
     }
   }
 
-  public init(bot: Discord.Client) {
+  public init(obj: any) {
     console.log("Test module loaded!");
-    this.bot = bot;
+    this.bot = obj.bot;
   }
 
   public deinit() {
