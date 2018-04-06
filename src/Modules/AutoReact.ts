@@ -9,14 +9,14 @@ export default class HelloWorld {
   private ignoreUsers: string[] = [];
   //private ignoreUsers: string[] = ["184165847940464641"];
 
-  public isActive = true;
+  private originalThinkosOnly = false;
 
   public register() {
     return {
       "refresh_thinking": {
         aliases: ["refresh_thinking"],
         description: "Reloads thinking emojis.",
-        handler: this.refreshThinkingEmojis,
+        handler: this.refreshThinkingEmojis.bind(this),
         prefix: "!",
         isActive: true,
         isPrivileged: false
@@ -26,6 +26,14 @@ export default class HelloWorld {
         description: "Toggles if botty will send emoji reactions to your messages. Default: true.",
         handler: this.toggleReact.bind(this),
         prefix: "!",
+        isActive: true,
+        isPrivileged: false
+      },
+      "toggle_default_thinking": {
+        aliases: ["toggle_default_thinking"],
+        description: "Toggles if botty will react with custom emojis or only with 🤔. Default: true.",
+        handler: this.toggleOriginalThinkos.bind(this),
+        prefix: "~",
         isActive: true,
         isPrivileged: false
       }
@@ -64,14 +72,19 @@ export default class HelloWorld {
   }
 
   public toggleReact(command: Command) {
-    let message = this.ignoreUsers.includes(command.author.id) ? "I will now emoji react to your messages." : "I will no longer emoji react to your messages";
-    //if (this.ignoreUsers.includes(command.author.id)) console.log("in array");
+    let message = this.ignoreUsers.includes(command.author.id) ? "I will now react to your messages." : "I will no longer react to your messages";
     if (this.ignoreUsers.includes(command.author.id)) this.ignoreUsers = this.ignoreUsers.splice(this.ignoreUsers.indexOf(command.author.id) + 1, 1);
     else this.ignoreUsers.push(command.author.id);
     command.message.reply(message);
   }
 
-  public refreshThinkingEmojis() {
+  public toggleOriginalThinkos(command: Command) {
+    let message = this.originalThinkosOnly ? "I will now react to thinkos with custom emojis." : "I will only react to thinkos with 🤔 now.";
+    this.originalThinkosOnly = !this.originalThinkosOnly;
+    command.message.reply(message)
+  }
+
+  public refreshThinkingEmojis(command: Command) {
     const guilds = this.bot.guilds.array();
     for (const guild of guilds) {
       const emojiSet = guild.emojis.filter((x: Discord.Emoji) => x.name.includes("thinking"));
