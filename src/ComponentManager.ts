@@ -221,6 +221,7 @@ export default class ModuleLoader {
       for(let mod in data) {
         console.log(mod)
         console.log("-> " + data[mod].isActive);
+      }
       for (let mod in data) {
         this.iModules.Item(name).Add(mod, data[mod]);
       }
