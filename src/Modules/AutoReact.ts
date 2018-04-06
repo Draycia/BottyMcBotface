@@ -25,7 +25,7 @@ export default class AutoReact {
     if (this.ignoreUsers.includes(message.author.id)) return;
     let hasThinking = false;
 
-    if (message.content.toString().includes("�")) {
+    if (message.content.toString().includes("🤔")) {
       hasThinking = true;
     } else {
       const emojiRegex = /\<\:[a-zA-Z0-9_]{1,50}\:[0-9]{18}\>/g;
