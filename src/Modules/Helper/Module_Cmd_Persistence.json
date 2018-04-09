@@ -9,9 +9,9 @@
         "handlerName": "getHelpInfo",
         "prefix": "$l/prefix",
         "isActive": true,
-        "isPrivileged": true,
+        "isPrivileged": false,
         "allowedUsers": "$l/adminUsers",
-        "stopPropagation": null,
+        "stopPropagation": true,
         "fallbackName": null
     }
 ]
