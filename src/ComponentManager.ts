@@ -15,8 +15,6 @@ const getFiles = (source: fs.PathLike) => fs.readdirSync(source).map(name => pat
 const logArray = (source: any[], prefixStr: string) => source.forEach(s => console.log(prefixStr + s));
 const intersect = <T>(array1: T[], array2: T[], comparisonConverter: Function | null) => array1.filter((value: T) => array2.indexOf(comparisonConverter ? comparisonConverter(value) : value) !== -1);
 const intersectMulti = <T>(against1: T[], comparisonConverter: Function | null, source1: T[], ...sources: T[][]) => { (sources.map(a => { source1.concat(a); })); return source1.filter((value: T) => against1.indexOf(comparisonConverter ? comparisonConverter(value) : value) !== -1) };
-const fileExists = (source: fs.PathLike) => fs.existsSync(source);
-const ModuleDataFiles: string[] = ["Module_Data_Collection.json", "Module_Cmd_Persistence.json", "Module_Env_Settings.json"];
 
 //
 
@@ -31,11 +29,8 @@ export default class ComponentManager {
   private iMods: KeyValueArray<KeyValueArray<Command>> = new KeyValueArray<KeyValueArray<Command>>();
   private iRefs: KeyValueArray<KeyValueArray<DataReference>> = new KeyValueArray<KeyValueArray<DataReference>>();
   private iEnvs: KeyValueArray<KeyValueArray<any>> = new KeyValueArray<KeyValueArray<any>>();
-  private iImpt: KeyValueArray<any> = new KeyValueArray<any>();
 
   private ignores: string[] = ["Command.ts", "KeyValue.ts", "InDev.ts", "app.ts", "Botty.ts", "FileBackedObject.ts", "PersonalSettings.ts", "SharedSettings.ts"];
-
-  private workSpaceDir = __dirname.split('\\').slice(0, __dirname.split('\\').length - 1).join('/');
 
   constructor(bot: Discord.Client) {
     console.log("Module Loader loaded. Giggity.");
@@ -45,10 +40,74 @@ export default class ComponentManager {
       this.bot.on("message", this.onMessage.bind(this));
     }
 
+    const workSpaceDir = __dirname.split('\\').slice(0, __dirname.split('\\').length - 1).join('/');
+    const files = getFiles(workSpaceDir + '/src/Modules').filter((f: string) => this.ignores.indexOf(f.split('\\').reverse()[0]) === -1).map(f => f.split('\\').reverse()[0]);
+    const files2 = getFiles(workSpaceDir + '/src').filter((f: string) => this.ignores.indexOf(f.split('\\').reverse()[0]) === -1).map(f => f.split('\\').reverse()[0]);
+    const dirs = getDirectories(workSpaceDir + '/src/Modules').map(d => d.split('\\').reverse()[0]);
 
+    const intersection: string[] = intersect(files.concat(files2), dirs, (s: string) => s.split('.')[0]);
 
-    // this.loadModulesFromFiles();
-    this.getModuleFiles().forEach(ModuleFile => this.loadModuleFile(ModuleFile));
+    console.log("\n|Found Module Files:")
+    logArray(intersection, '|---');
+    console.log('|\n|Loading Module Data Files\n|');
+
+    const modProperties: string[] = ['aliases', 'description', 'handler', 'prefix', 'isActive', 'isPrivileged', 'allowedUsers', 'stopPropagation', 'fallback'];
+    const fileProperties: string[] = ['aliases', 'description', 'handlerName', 'prefix', 'isActive', 'isPrivileged', 'allowedUsers', 'stopPropagation', 'fallbackName'];
+
+    intersection.forEach(pathFile => {
+      const name = pathFile.split('.')[0];
+      console.log(`|${name}`)
+      this.iMods.Add(name, new KeyValueArray<Command>());
+      this.iRefs.Add(name, new KeyValueArray<DataReference>());
+      this.iEnvs.Add(name, new KeyValueArray<any>());
+      const ModuleDataFiles: string[] = ["Module_Data_Collection.json", "Module_Cmd_Persistence.json", "Module_Env_Settings.json"];
+      const ModuleDataDir: string = `${__dirname.split('\\').reverse().splice(1).reverse().join('/')}/src/Modules/${name}`;
+      console.log(`|${ModuleDataDir}`)
+      let Module_Data_Collection: any = {};
+      ModuleDataFiles.forEach(fileName => {
+        if (fs.existsSync(ModuleDataDir + '/' + fileName)) {
+          console.log('|---' + fileName);
+          switch (fileName) {
+            case 'Module_Data_Collection.json':
+              Module_Data_Collection = JSON.parse(fs.readFileSync(ModuleDataDir + '/' + fileName).toString());
+              for (const key in Module_Data_Collection)
+                if (Module_Data_Collection.hasOwnProperty(key))
+                  console.log(`|---|---${key}: ${JSON.stringify(Module_Data_Collection[key])}`);
+              break;
+            case 'Module_Cmd_Persistence.json':
+              const Module_Cmd_Persistence = JSON.parse(fs.readFileSync(ModuleDataDir + '/' + fileName).toString());
+              (<any[]>Module_Cmd_Persistence).forEach(command => {
+                const commandObj: any = {};
+                fileProperties.forEach(requiredProperty => {
+                  let customID: string = ''; let value = null;
+                  (typeof command[requiredProperty]) === 'string' ? customID = (command[requiredProperty].toString().slice(3)) : null;
+                  const customMatch = /^\$(.)\/.+/.exec(command[requiredProperty]);
+                  const customScope: string = customID !== '' ? (customMatch ? customMatch[1] : '') : '';
+                  value = (customID !== '' ? (customMatch ? (customScope !== '' ? (customScope === 'l' ? (Module_Data_Collection[`$/${customID}`] !== undefined ? Module_Data_Collection[`$/${customID}`] : command[requiredProperty]) : command[requiredProperty]) : command[requiredProperty]) : command[requiredProperty]) : command[requiredProperty]);
+                  commandObj[requiredProperty] = value
+                  if (customScope !== '') this.iRefs.Item(name).Add(`${command['name']}>${requiredProperty}`, { reference: `$${customScope}/${customID}`, data: value })
+                  this.iMods.Item(name).Add(command['name'], commandObj);
+                });
+                console.log('|---|---' + command['name']);
+              });
+              break;
+            case 'Module_Env_Settings.json':
+              const Module_Env_Settings: any = JSON.parse(fs.readFileSync(ModuleDataDir + '/' + fileName).toString());
+              for (const jsonkey in Module_Env_Settings) {
+                if (Module_Env_Settings.hasOwnProperty(jsonkey)) {
+                  this.iEnvs.Item(name).Add(jsonkey, Module_Env_Settings[jsonkey]);
+                  console.log('|---|---' + jsonkey + ': ' + JSON.stringify(Module_Env_Settings[jsonkey]));
+                }
+              }
+              console.log('|---Loading ' + name + ': ' + Module_Env_Settings['relativePath'])
+              this.loadModule(name, (Module_Env_Settings['relativePath'] ? Module_Env_Settings['relativePath'] : null));
+              break;
+            default:
+              break;
+          }
+        }
+      });
+    });
 
     this.iMods.Item("ComponentManager").values.forEach(v => { /*console.log(v.handler);*/ v.handler = v.handler.bind(this) });
 
@@ -82,237 +141,30 @@ export default class ComponentManager {
   }
 
   private onBot() {
+    //this.modules2.Add("ComponentManager", this.managerCommands);
+    // this.iModules.Add("ComponentManager", new KeyValueArray<Command>());
+    // // console.log("- ComponentManager")
+    // for (let mod in this.managerCommands) {
+    //   // console.log(mod)
+    //   this.iModules.Item("ComponentManager").Add(mod, this.managerCommands[mod]);
+    // }
+
+    // for (const key in testModuleDependentFile_Data) {
+    //   if (testModuleDependentFile_Data.hasOwnProperty(key)) {
+    //     const element = testModuleDependentFile_Data[key];
+    //     console.log(element)
+    //   }
+    // }
+
+    //if (this.ignores.length = 2) return;
+
+    //const localCommandData = (fs.readFileSync(this.commandsFile).toString());
+
 
   }
-
-  public getModuleFiles(): string[] {
-    const workSpaceDir = __dirname.split('\\').slice(0, __dirname.split('\\').length - 1).join('/');
-    const files = getFiles(workSpaceDir + '/src/Modules').filter((f: string) => this.ignores.indexOf(f.split('\\').reverse()[0]) === -1).map(f => f.split('\\').reverse()[0]);
-    const files2 = getFiles(workSpaceDir + '/src').filter((f: string) => this.ignores.indexOf(f.split('\\').reverse()[0]) === -1).map(f => f.split('\\').reverse()[0]);
-    const dirs = getDirectories(workSpaceDir + '/src/Modules').map(d => d.split('\\').reverse()[0]);
-    return intersect(files.concat(files2), dirs, (s: string) => s.split('.')[0]);
-  }
-
-  private fileProperties: string[] = ['aliases', 'description', 'handlerName', 'prefix', 'isActive', 'isPrivileged', 'allowedUsers', 'stopPropagation', 'fallbackName'];
-  private ModuleDataFiles: string[] = ["Module_Data_Collection.json", "Module_Cmd_Persistence.json", "Module_Env_Settings.json"];
-  public loadModuleFile(name: string, channel?: Discord.TextChannel) {
-    //-> Gets all files that have a corresponding Module folder with the same name.
-    const intersection: string[] = this.getModuleFiles();
-    //-> Remove TypeScript extension if it is in the 'name' arg provided. 
-    name = (name.endsWith('.ts') ? name.slice(0, name.lastIndexOf('.')) : name);
-    //-> Ensure the Module name given is one of the Modules that have a Module folder.
-    if (intersection.map(i => i.toLowerCase().replace('.ts', '')).includes(name.toLowerCase())) {
-      //-> Return if Module is already loaded.
-      if (this.iMods.hasKey(name)) return;
-      //-> Logging.
-      console.log("\n|Module File:");
-      console.log(`|---${name}.ts`);
-      console.log('|\n|Loading Module Data Files\n|');
-      console.log(`|${name}`)
-      //-> Initialize object under the file's name in the cache arrays.
-      this.iMods.Add(name, new KeyValueArray<Command>());
-      this.iRefs.Add(name, new KeyValueArray<DataReference>());
-      this.iEnvs.Add(name, new KeyValueArray<any>());
-      //-> Constructs the Module folder with the file name.
-      const ModuleDataDir: string = `${__dirname.split('\\').reverse().splice(1).reverse().join('/')}/src/Modules/${name}`;
-      //-> Log the directory.
-      console.log(`|${ModuleDataDir}`);
-      //-> Temp Cache object.
-      let Module_Data_Collection: any = {};
-      //-> Iterate the files that should be within the named Module's folder.
-      ModuleDataFiles.forEach(fileName => {
-        //-> Directory must exist.
-        if (fs.existsSync(ModuleDataDir + '/' + fileName)) {
-          //-> Log file name.
-          console.log('|---' + fileName);
-          switch (fileName) {
-            //-> If the file name is the one that declares any custom Module dependant values for use in the scope of the Module.
-            case 'Module_Data_Collection.json':
-              //-> Assign temp object to parsed json of that file.
-              Module_Data_Collection = JSON.parse(fs.readFileSync(ModuleDataDir + '/' + fileName).toString());
-              //-> Log all json 'keys' and their value(s).
-              for (const key in Module_Data_Collection)
-                if (Module_Data_Collection.hasOwnProperty(key))
-                  console.log(`|---|---${key}: ${JSON.stringify(Module_Data_Collection[key])}`);
-              break;
-            //-> If the file name is the file that contains/defines the callable commands with this Module.
-            case 'Module_Cmd_Persistence.json':
-              //-> Get parsed data from the file about the commands.
-              const Module_Cmd_Persistence = JSON.parse(fs.readFileSync(ModuleDataDir + '/' + fileName).toString());
-              //-> Iterate each command object within the json array in the file.
-              (<any[]>Module_Cmd_Persistence).forEach(command => {
-                const commandObj: any = {};
-                //-> Iterate each property that we need cache.
-                this.fileProperties.forEach(requiredProperty => {
-                  let customID: string = ''; let value = null;
-                  //-> If the type of the property's value is 'string' then set 'customID' to the value, skipping the first 3 chars.
-                  (typeof command[requiredProperty]) === 'string' ? customID = (command[requiredProperty].toString().slice(3)) : null;
-                  //-> Attempt to match a regex to the 'value' of the aforementioned property.
-                  const customMatch = /^\$(.)\/.+/.exec(command[requiredProperty]);
-                  //-> If 'customID' is not blank (type of the 'value' was 'string') and if there was a match from the regex then assign 'customScope' to the char ['l' or 'g']:
-                  //-> ('l' beiung a locally [Module dependant variable] or 'g' being globally [declared in main file, can override local]) that the regex captured.
-                  const customScope: string = customID !== '' ? (customMatch ? customMatch[1] : '') : '';
-                  //-> Yeah, this just gets the value, either the custom defined value, or if none exists with that name then just the value as is.
-                  value = (customID !== '' ? (customMatch ? (customScope !== '' ? (customScope === 'l' ? (Module_Data_Collection[`$/${customID}`] !== undefined ? Module_Data_Collection[`$/${customID}`] : command[requiredProperty]) : command[requiredProperty]) : command[requiredProperty]) : command[requiredProperty]) : command[requiredProperty]);
-                  //-> Set the property name within the temp object to the value.
-                  commandObj[requiredProperty] = value
-                  //-> Cache the name of the custom variable Id [name] and the value.
-                  if (customScope !== '')
-                    this.iRefs.Item(name).Add(`${command['name']}>${requiredProperty}`, { reference: `$${customScope}/${customID}`, data: value })
-                  //-> Adds this command and it's temp object's data to 'iMods'.
-                  this.iMods.Item(name).Add(command['name'], commandObj);
-                });
-                //-> If this Module had no commands cached [not from error, but there was none to cache] then remove it from 'iMods'.
-                if (this.iMods.Item(name).keys.length === 0)
-                  this.iMods.Remove(name);
-                //-> Logs.
-                console.log('|---|---' + command['name']);
-              });
-              break;
-            //-> If file name is the file that contains the Enironment Settings (ex: 'anableLogging', 'relativePath' [for a Module file that is not in the 'Modules' folder], etc).
-            case 'Module_Env_Settings.json':
-              //-> Parse the json to temp object.
-              const Module_Env_Settings: any = JSON.parse(fs.readFileSync(ModuleDataDir + '/' + fileName).toString());
-              //-> Iterate the objects keys, logging and caching the properties and their values.
-              for (const jsonkey in Module_Env_Settings) {
-                if (Module_Env_Settings.hasOwnProperty(jsonkey)) {
-                  this.iEnvs.Item(name).Add(jsonkey, Module_Env_Settings[jsonkey]);
-                  console.log('|---|---' + jsonkey + ': ' + JSON.stringify(Module_Env_Settings[jsonkey]));
-                }
-              }
-              //-> Logs.
-              console.log('|---Loading ' + name + ': ' + Module_Env_Settings['relativePath'])
-              //-> Calls method to link all the commands cached in 'iMods' to their function/method handlers from string 'handlerName'.
-              this.linkModuleHandlers(name, (Module_Env_Settings['relativePath'] ? Module_Env_Settings['relativePath'] : channel));
-              break;
-            //-> Will never trigger, but for good measure just in case.
-            default:
-              break;
-          }
-        }
-      });
-      //-> Send Message if 'channel' was provided [was called from command, not on start-up].
-      if (channel)
-        channel.send(`Loaded module **${name}**`);
-    }
-  }
-
-  public linkModuleHandlers(name: string, relDir?: string | null, channel?: Discord.TextChannel) {
-    //-> Remove trailing TypeScript file extension.
-    if (name.endsWith('.ts')) name = name.substr(0, name.lastIndexOf('.'));
-    const that: any = this;
-    //-> Separate ComponentManager's handler assigning.
-    if (name === 'ComponentManager')
-      //-> Iterate through each key, 'mod' being an integer indexing number.
-      for (let mod in this.iMods.Item(name).keys)
-        //-> Index 'this' (cast as 'any') with the handlerName of the command value at the specified index number.
-        this.iMods.Item(name).values[parseInt(mod)].handler = (<Function>(that[that.iMods.Item(name).values[parseInt(mod)].handlerName]));
-    else
-      //-> For all other Module files, use 'import' which'll return the file as an object type of 'any' so it can be indexed.
-      import((relDir ? relDir : this.moduleDir) + name).then(importedModule => {
-        this.iImpt.Add(name, { module: importedModule });
-        //-> Get the default export within the imported object
-        const botModule = new importedModule.default;
-        //-> Assign 'data' accordingly; Essentially, 'iMods' should always have the 'key' unless the module has no commands.
-        const data = (this.iMods.hasKey(name) ? this.iMods.Item(name).keys : { name: {} });
-        //-> Log if Data is found for that Module.
-        if (this.iMods.hasKey(name))
-          console.log(`|---Module Data exists for: ${name}`);
-        //-> Logs.
-        console.log('|---Module `init()` message:')
-        console.log('|---')
-        //-> Call if defined. 'init()' is used if the Module uses variables that it gets from this main file: 'bot', 'iMods', 'adminUsers': Are always passed and usable within the Module if this ['init()'] method exists.
-        if (typeof botModule.init !== "undefined")
-          botModule.init({ bot: this.bot, commandObj: this.iMods, deinitFunctions: this.deinitFuncs, admins: this.adminUsers });
-        //-> Caches 'deinit()' if declared. Called when Module is unloaded if anything (events, etc) needs to be unregistered or done before it's unloaded: that is done here [within the Module's 'deinit()'].
-        if (typeof botModule.deinit !== "undefined")
-          this.deinitFuncs[name] = botModule;
-        //-> Logs.
-        console.log('|---');
-        //-> Iterate 'keys' [as their index position in variable 'mod'] from 'data'. 
-        for (let mod in data)
-          //-> Index 'botModule' [the Module's default exported class] with the handlerName from the command value at the specified index number. Also binding the method/function to 'botModule', setting the context of the method.
-          this.iMods.Item(name).values[parseInt(mod)].handler = botModule[this.iMods.Item(name).values[parseInt(mod)].handlerName].bind(botModule);
-        //-> Message in channel if channel arg was provided (this method was called from a command and not on startup). 
-        if (channel)
-          channel.send(`Loaded module **${name}**`);
-        //-> Logs.
-        console.log(`|---|---Loaded: ${relDir || this.moduleDir}${name}`);
-      });
-  }
-
-  // public loadModulesFromFiles() {
-  //   const intersection: string[] = this.getModuleFiles();
-  //   console.log("\n|Found Module Files:");
-  //   logArray(intersection, '|---');
-  //   console.log('|\n|Loading Module Data Files\n|');
-  //   intersection.forEach(pathFile => {
-  //     const name = pathFile.split('.')[0];
-  //     if (this.iMods.hasKey(name)) return;
-  //     console.log(`|${name}`)
-  //     this.iMods.Add(name, new KeyValueArray<Command>());
-  //     this.iRefs.Add(name, new KeyValueArray<DataReference>());
-  //     this.iEnvs.Add(name, new KeyValueArray<any>());
-  //     const ModuleDataDir: string = `${__dirname.split('\\').reverse().splice(1).reverse().join('/')}/src/Modules/${name}`;
-  //     console.log(`|${ModuleDataDir}`);
-  //     let Module_Data_Collection: any = {};
-  //     ModuleDataFiles.forEach(fileName => {
-  //       if (fs.existsSync(ModuleDataDir + '/' + fileName)) {
-  //         console.log('|---' + fileName);
-  //         switch (fileName) {
-  //           case 'Module_Data_Collection.json':
-  //             Module_Data_Collection = JSON.parse(fs.readFileSync(ModuleDataDir + '/' + fileName).toString());
-  //             for (const key in Module_Data_Collection)
-  //               if (Module_Data_Collection.hasOwnProperty(key))
-  //                 console.log(`|---|---${key}: ${JSON.stringify(Module_Data_Collection[key])}`);
-  //             break;
-  //           case 'Module_Cmd_Persistence.json':
-  //             const Module_Cmd_Persistence = JSON.parse(fs.readFileSync(ModuleDataDir + '/' + fileName).toString());
-  //             (<any[]>Module_Cmd_Persistence).forEach(command => {
-  //               const commandObj: any = {};
-  //               this.fileProperties.forEach(requiredProperty => {
-  //                 let customID: string = ''; let value = null;
-  //                 (typeof command[requiredProperty]) === 'string' ? customID = (command[requiredProperty].toString().slice(3)) : null;
-  //                 const customMatch = /^\$(.)\/.+/.exec(command[requiredProperty]);
-  //                 const customScope: string = customID !== '' ? (customMatch ? customMatch[1] : '') : '';
-  //                 value = (customID !== '' ? (customMatch ? (customScope !== '' ? (customScope === 'l' ? (Module_Data_Collection[`$/${customID}`] !== undefined ? Module_Data_Collection[`$/${customID}`] : command[requiredProperty]) : command[requiredProperty]) : command[requiredProperty]) : command[requiredProperty]) : command[requiredProperty]);
-  //                 commandObj[requiredProperty] = value
-  //                 if (customScope !== '') this.iRefs.Item(name).Add(`${command['name']}>${requiredProperty}`, { reference: `$${customScope}/${customID}`, data: value })
-  //                 this.iMods.Item(name).Add(command['name'], commandObj);
-  //               });
-  //               console.log('|---|---' + command['name']);
-  //             });
-  //             break;
-  //           case 'Module_Env_Settings.json':
-  //             const Module_Env_Settings: any = JSON.parse(fs.readFileSync(ModuleDataDir + '/' + fileName).toString());
-  //             for (const jsonkey in Module_Env_Settings) {
-  //               if (Module_Env_Settings.hasOwnProperty(jsonkey)) {
-  //                 this.iEnvs.Item(name).Add(jsonkey, Module_Env_Settings[jsonkey]);
-  //                 console.log('|---|---' + jsonkey + ': ' + JSON.stringify(Module_Env_Settings[jsonkey]));
-  //               }
-  //             }
-  //             console.log('|---Loading ' + name + ': ' + Module_Env_Settings['relativePath'])
-  //             this.loadModule(name, (Module_Env_Settings['relativePath'] ? Module_Env_Settings['relativePath'] : null));
-  //             break;
-  //           default:
-  //             break;
-  //         }
-  //       }
-  //     });
-  //   });
-  // }
 
 
   private onMessage(message: Discord.Message) {
-    this.createDataFiles('Pleb');
-    // if (message.author.bot)
-    //   console.log(message.embeds);
-    // if (!message.author.bot)
-    //   message.channel.send(new Discord.RichEmbed({
-    //     'fields': [
-    //       { value: '[](184165847940464641,184165847940464641,184165847940464641,184165847940464641,184165847940464641,184165847940464641,184165847940464641,184165847940464641,184165847940464641,184165847940464641)', name: '.' }
-    //     ]
-    //   }))
     //console.log(this.iMods)
     const author = message.author;
     if (!message.cleanContent || message.author.bot || !(message.channel instanceof Discord.TextChannel)) return;
@@ -341,19 +193,6 @@ export default class ComponentManager {
         value.isPrivileged ? (value.allowedUsers && value.allowedUsers.length !== 0 ? (value.allowedUsers.indexOf(message.author.id) !== -1 ? value.handler({ author, args, message }) : (value.fallback ? value.fallback({ author, args, message }) : this.iMods.Item('InDev').Item('defaultFallback').handler({ author, args, message }))) : value.handler({ author, args, message })) : value.handler({ author, args, message });
       }
     });
-  }
-
-
-  public createDataFiles(moduleName: string) {
-    const dataDirPath: string = this.workSpaceDir + '/src/Modules/' + (moduleName.endsWith('.ts') ? moduleName.slice(0, moduleName.lastIndexOf('.')) : moduleName);
-    if (fileExists(dataDirPath)) { } else { fs.mkdirSync(dataDirPath); }
-    const defaultData = [[], {}, {}];
-    ModuleDataFiles.forEach(file => {
-      if (!fileExists(dataDirPath + '/' + file)) fs.writeFileSync(dataDirPath + '/' + file, JSON.stringify(defaultData[ModuleDataFiles.indexOf(file)], null, 2));
-    });
-  }
-  public restoreDefaults(moduleName: string) {
-
   }
 
 
@@ -402,12 +241,12 @@ export default class ComponentManager {
 
   }
 
+
   public onCommandsActiveChange(callerDataObj: CallerDataObject) {
     const commandObj = this.iMods.Item(callerDataObj.args[0]).Item(callerDataObj.args[1]);
     commandObj.isActive = !commandObj.isActive;
     callerDataObj.message.channel.send(`${commandObj.isActive ? 'Activated' : 'Deactivated'} command \`${callerDataObj.args[1]}\` from Module \`${callerDataObj.args[0]}\`.`);
   }
-
   public listCommands(callerDataObj: CallerDataObject) {
     let commands: Array<{ name: string, obj: Command }> = new Array<{ name: string, obj: Command }>()
     this.iMods.values.forEach(value => {
@@ -422,11 +261,8 @@ export default class ComponentManager {
   public unloadCommand(callerDataObj: CallerDataObject) {
     const author = callerDataObj.author;
     const args = callerDataObj.args;
-    console.log(args[0]);
-    //if (this.adminUsers.indexOf(author.id) !== -1) return;
-    console.log(args[0]);
+    if (this.adminUsers.includes(author.id) === true) return;
     if (!args) return;
-    console.log(args[0]);
     if (this.iMods.hasKey(args[0])) {
       this.unloadModule(args[0], <Discord.TextChannel>callerDataObj.message.channel);
     }
@@ -435,10 +271,10 @@ export default class ComponentManager {
   public loadCommand(callerDataObj: CallerDataObject) {
     const author = callerDataObj.author;
     const args = callerDataObj.args;
-    //if (this.adminUsers.includes(author.id) === true) return;
+    if (this.adminUsers.includes(author.id) === true) return;
     if (!args[0]) return;
     if (!this.iMods.hasKey(args[0])) {
-      this.loadModuleFile(args[0], <Discord.TextChannel>callerDataObj.message.channel);
+      this.loadModule(args[0], null, <Discord.TextChannel>callerDataObj.message.channel);
     }
   }
   public reloadCommand(callerDataObj: CallerDataObject) {
@@ -483,10 +319,12 @@ export default class ComponentManager {
     //console.log(JSON.stringify(data, null, '    '));
   }
   public loadModule(name: string, relDir?: string | null, channel?: Discord.TextChannel) {
-    //if (!this.iMods.hasKey(name)) this.loadModulesFromFiles();
     if (name.endsWith('.ts')) name = name.substr(0, name.lastIndexOf('.'));
     if (name === 'ComponentManager') {
       for (let mod in this.iMods.Item(name).keys) {
+        // console.log(mod)
+        // console.log("-> " + this.iMods.Item(name).values[parseInt(mod)].isActive);
+        // console.log((<any>this)[this.iMods.Item(name).values[parseInt(mod)].handlerName]);
         const that: any = this;
         this.iMods.Item(name).values[parseInt(mod)].handler = (<Function>(that[that.iMods.Item(name).values[parseInt(mod)].handlerName]));
       }
@@ -505,6 +343,7 @@ export default class ComponentManager {
             data = { name: {} };
           };
         }
+        //const ary = [this.bot];
         console.log('|---Module `init()` message:')
         console.log('|---')
         if (typeof botModule.init !== "undefined")
@@ -512,26 +351,30 @@ export default class ComponentManager {
         if (typeof botModule.deinit !== "undefined")
           this.deinitFuncs[name] = botModule;
         console.log('|---')
+        //this.modules2.Add(name, data);
+        //console.log("-" + name)
         if (!fromFile) this.iMods.Add(name, new KeyValueArray<Command>()); else this.iMods.Item(name);
         //console.log(data);
         for (let mod in data) {
-          fromFile ? this.iMods.Item(name).values[parseInt(mod)].handler = botModule[this.iMods.Item(name).values[parseInt(mod)].handlerName].bind(botModule) : this.iMods.Item(name).Add(mod, data[mod]);
+          //console.log(mod)
+          //fromFile ? console.log("-> " + this.iMods.Item(name).values[parseInt(mod)].isActive) : null;
+          //fromFile ? console.log(botModule[this.iMods.Item(name).values[parseInt(mod)].handlerName]) : null;
+          fromFile ? this.iMods.Item(name).values[parseInt(mod)].handler = botModule[this.iMods.Item(name).values[parseInt(mod)].handlerName] : this.iMods.Item(name).Add(mod, data[mod]);
         }
+        //this.modules[name] = data;
         if (channel) channel.send(`Loaded module **${name}**`);
-        console.log(`|---|---Loaded: ${relDir || this.moduleDir}${name}`);
+        console.log(`|---|---Loaded: ${relDir}${name}`);
       });
     }
   }
   public unloadModule(name: string, channel?: Discord.TextChannel) {
-    console.log('unload')
     if (this.deinitFuncs[name])
       this.deinitFuncs[name].deinit();
     //delete this.modules[name];
     delete this.deinitFuncs[name];
     //delete this.modules2.toObj()[name];
-    delete this.iImpt.Item(name).module;
     //this.modules2.Remove(name);
-    this.iMods.Item(name).keys.forEach(k => { delete this.iMods.Item(name).Item(k).handler; this.iMods.Item(name).Remove(k); })
+    this.iMods.Item(name).keys.forEach(k => delete this.iMods.Item(name).Item(k).handler)
     this.iMods.Remove(name)
     if (channel) channel.send(`Unloaded module **${name}**`);
   }
