@@ -6,23 +6,7 @@
             "hlp"
         ],
         "description": "Displays help information, duh!",
-        "handlerName": "testCommand",
-        "prefix": "$l/prefix",
-        "isActive": true,
-        "isPrivileged": true,
-        "allowedUsers": "$l/adminUsers",
-        "stopPropagation": null,
-        "fallbackName": null
-    },
-    {
-        "name": "help2",
-        "aliases": [
-            "help2",
-            "halp2",
-            "hlp2"
-        ],
-        "description": "Displays help2 information, duh!",
-        "handlerName": "testCommand",
+        "handlerName": "getHelpInfo",
         "prefix": "$l/prefix",
         "isActive": true,
         "isPrivileged": true,
