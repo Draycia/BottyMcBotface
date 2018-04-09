@@ -10,20 +10,26 @@ export default class AutoReact {
   //private ignoreUsers: string[] = ["184165847940464641"];
   private originalThinkosOnly = false;
 
+  public readonly fileName = __filename.substr(__filename.lastIndexOf('\\') + 1, __filename.lastIndexOf('.'));
+  public readonly className = this.constructor.name;
+  private readonly handler  = this.onMessage.bind(this);
   public init(obj: any) {
-    console.log("Auto React module loaded!");
+    console.log("Auto React module loaded!!");
     this.bot = obj.bot;
-    this.bot.on("message", this.onMessage.bind(this));
+    this.bot.addListener("message", this.handler);
   }
 
   public deinit() {
     console.log("Auto React module unloaded!");
+    this.bot.removeListener("message", this.handler);
   }
 
   public onMessage(message: Discord.Message) {
+    //this.bot.removeAllListeners();
     if (message.author.bot) return;
     if (this.ignoreUsers.includes(message.author.id)) return;
     let hasThinking = false;
+    // message.channel.send('topkek')
 
     if (message.content.toString().includes("🤔")) {
       hasThinking = true;
@@ -32,9 +38,11 @@ export default class AutoReact {
       const emojis = message.content.toString().match(emojiRegex);
       if (!emojis) return;
       emojis.forEach((emoji: string) => { if (emoji.toLowerCase().match(/(think|thonk)/g)) hasThinking = true });
-      }
+    }
     if (hasThinking) {
-      const guildEmoji = message.guild.emojis.filter((x: Discord.Emoji) => x.name.includes("thinking")).random();
+      const guildEmojis = message.guild.emojis.filter((x: Discord.Emoji) => x.name.includes("thinking"));
+      console.log(guildEmojis.size);
+      const guildEmoji =guildEmojis.random();
       if (guildEmoji) {
         message.react(guildEmoji);
         return;
