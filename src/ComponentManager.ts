@@ -44,41 +44,8 @@ export default class ComponentManager {
       this.bot.on("ready", this.onBot.bind(this));
       this.bot.on("message", this.onMessage.bind(this));
     }
-
-
-
-    // this.loadModulesFromFiles();
     this.getModuleFiles().forEach(ModuleFile => this.loadModuleFile(ModuleFile));
-
     this.iMods.Item("ComponentManager").values.forEach(v => { /*console.log(v.handler);*/ v.handler = v.handler.bind(this) });
-
-    // const localCommandData: any = {}
-    // if (intersection) return;
-    // for (const key in (localCommandData)) {
-    //   if ((localCommandData).hasOwnProperty(key)) {
-    //     const element = (localCommandData)[key];
-    //     this.iMods.Add(key, new KeyValueArray<Command>());
-    //     for (const innerkey in element) {
-    //       if (element.hasOwnProperty(innerkey)) {
-    //         console.log('->>> ' + innerkey);
-    //         const elementkey = element[innerkey];
-    //         const commandElementConstruct: any = {};
-    //         this.iMods.Item(key).Add(elementkey['name'], commandElementConstruct);
-    //         //properties.forEach(requiredProperty => { commandElementConstruct[requiredProperty] = elementkey[requiredProperty] ? (elementkey[requiredProperty] instanceof String ? ((<string>elementkey[requiredProperty]).startsWith('$/') ? Module_Data_Collection[elementkey[requiredProperty]] : elementkey[requiredProperty]) : elementkey[requiredProperty]) : null; });
-    //         console.log(this.iMods.Item(key).Item(innerkey));
-    //       }
-    //     }
-    //   }
-    //   console.log(this.iMods.Item(key));
-    // }
-
-    // fs.readdir(this.fileDir, (err: Error, files: string[]) => {
-    //   if (err) { console.log(err); return; }
-
-    //   files.filter((value: string) => (value.endsWith('.ts') && this.ignores.includes(value) === true)).forEach((file: string) => {
-    //     this.loadModule(file);
-    //   });
-    // });
   }
 
   private onBot() {
@@ -241,68 +208,6 @@ export default class ComponentManager {
       });
   }
 
-  // public loadModulesFromFiles() {
-  //   const intersection: string[] = this.getModuleFiles();
-  //   console.log("\n|Found Module Files:");
-  //   logArray(intersection, '|---');
-  //   console.log('|\n|Loading Module Data Files\n|');
-  //   intersection.forEach(pathFile => {
-  //     const name = pathFile.split('.')[0];
-  //     if (this.iMods.hasKey(name)) return;
-  //     console.log(`|${name}`)
-  //     this.iMods.Add(name, new KeyValueArray<Command>());
-  //     this.iRefs.Add(name, new KeyValueArray<DataReference>());
-  //     this.iEnvs.Add(name, new KeyValueArray<any>());
-  //     const ModuleDataDir: string = `${__dirname.split('\\').reverse().splice(1).reverse().join('/')}/src/Modules/${name}`;
-  //     console.log(`|${ModuleDataDir}`);
-  //     let Module_Data_Collection: any = {};
-  //     ModuleDataFiles.forEach(fileName => {
-  //       if (fs.existsSync(ModuleDataDir + '/' + fileName)) {
-  //         console.log('|---' + fileName);
-  //         switch (fileName) {
-  //           case 'Module_Data_Collection.json':
-  //             Module_Data_Collection = JSON.parse(fs.readFileSync(ModuleDataDir + '/' + fileName).toString());
-  //             for (const key in Module_Data_Collection)
-  //               if (Module_Data_Collection.hasOwnProperty(key))
-  //                 console.log(`|---|---${key}: ${JSON.stringify(Module_Data_Collection[key])}`);
-  //             break;
-  //           case 'Module_Cmd_Persistence.json':
-  //             const Module_Cmd_Persistence = JSON.parse(fs.readFileSync(ModuleDataDir + '/' + fileName).toString());
-  //             (<any[]>Module_Cmd_Persistence).forEach(command => {
-  //               const commandObj: any = {};
-  //               this.fileProperties.forEach(requiredProperty => {
-  //                 let customID: string = ''; let value = null;
-  //                 (typeof command[requiredProperty]) === 'string' ? customID = (command[requiredProperty].toString().slice(3)) : null;
-  //                 const customMatch = /^\$(.)\/.+/.exec(command[requiredProperty]);
-  //                 const customScope: string = customID !== '' ? (customMatch ? customMatch[1] : '') : '';
-  //                 value = (customID !== '' ? (customMatch ? (customScope !== '' ? (customScope === 'l' ? (Module_Data_Collection[`$/${customID}`] !== undefined ? Module_Data_Collection[`$/${customID}`] : command[requiredProperty]) : command[requiredProperty]) : command[requiredProperty]) : command[requiredProperty]) : command[requiredProperty]);
-  //                 commandObj[requiredProperty] = value
-  //                 if (customScope !== '') this.iRefs.Item(name).Add(`${command['name']}>${requiredProperty}`, { reference: `$${customScope}/${customID}`, data: value })
-  //                 this.iMods.Item(name).Add(command['name'], commandObj);
-  //               });
-  //               console.log('|---|---' + command['name']);
-  //             });
-  //             break;
-  //           case 'Module_Env_Settings.json':
-  //             const Module_Env_Settings: any = JSON.parse(fs.readFileSync(ModuleDataDir + '/' + fileName).toString());
-  //             for (const jsonkey in Module_Env_Settings) {
-  //               if (Module_Env_Settings.hasOwnProperty(jsonkey)) {
-  //                 this.iEnvs.Item(name).Add(jsonkey, Module_Env_Settings[jsonkey]);
-  //                 console.log('|---|---' + jsonkey + ': ' + JSON.stringify(Module_Env_Settings[jsonkey]));
-  //               }
-  //             }
-  //             console.log('|---Loading ' + name + ': ' + Module_Env_Settings['relativePath'])
-  //             this.loadModule(name, (Module_Env_Settings['relativePath'] ? Module_Env_Settings['relativePath'] : null));
-  //             break;
-  //           default:
-  //             break;
-  //         }
-  //       }
-  //     });
-  //   });
-  // }
-
-
   private onMessage(message: Discord.Message) {
     this.createDataFiles('Pleb');
     // if (message.author.bot)
@@ -343,7 +248,6 @@ export default class ComponentManager {
     });
   }
 
-
   public createDataFiles(moduleName: string) {
     const dataDirPath: string = this.workSpaceDir + '/src/Modules/' + (moduleName.endsWith('.ts') ? moduleName.slice(0, moduleName.lastIndexOf('.')) : moduleName);
     if (fileExists(dataDirPath)) { } else { fs.mkdirSync(dataDirPath); }
@@ -352,19 +256,17 @@ export default class ComponentManager {
       if (!fileExists(dataDirPath + '/' + file)) fs.writeFileSync(dataDirPath + '/' + file, JSON.stringify(defaultData[ModuleDataFiles.indexOf(file)], null, 2));
     });
   }
-  public restoreDefaults(moduleName: string) {
-
-  }
-
 
   public listModules(callerDataObj: CallerDataObject) {
     callerDataObj.message.channel.send(`List of Modules:\n${this.iMods.keys.join(", ")}`);
   }
+  
   public getModuleData(callerDataObj: CallerDataObject) {
     console.log(this.iMods.Item(callerDataObj.args[0]));
     const send = this.iMods.Item(callerDataObj.args[0]);
     if (send) callerDataObj.message.channel.send("```json\n" + JSON.stringify(send, null, '  ') + "\n```");
   }
+  
   public editModuleData(callerDataObj: CallerDataObject) {
     const [moduleName, commandName, objectProperty] = callerDataObj.args.slice(0, 3);
     // (this.propertyValueParser(callerDataObj.args.slice(3).join(" ")));
@@ -373,6 +275,7 @@ export default class ComponentManager {
     (<any>this.iMods.Item(moduleName).values[this.iMods.Item(moduleName).keys.indexOf(commandName)])[objectProperty] = propertyValue;
     callerDataObj.message.channel.send(`Updated Module \`${moduleName}\`'s \`${commandName}\` command property \`${objectProperty}\` to \`"${propertyValue}"\` \n \`\`\`json\n"${commandName}": \{\n  . . .\n  "${objectProperty}": "${propertyValue}"\,\n  . . .\n\}\`\`\``);
   }
+  
   public propertyValueParser(source: string): any {
     const matches = new RegExp(/^\(([^)]+)\)/).exec(source);
     if (!matches) return null;
@@ -387,7 +290,6 @@ export default class ComponentManager {
       //stringArray: /"(.*?)",?\s?/gi,
       //numberArray: /(\d+),?\s?/gi
     }
-
     for (let key in RegExps) {
       if (RegExps.hasOwnProperty(key)) {
         const Exp: RegExp = RegExps[key];
@@ -399,7 +301,6 @@ export default class ComponentManager {
         }
       }
     }
-
   }
 
   public onCommandsActiveChange(callerDataObj: CallerDataObject) {
@@ -418,7 +319,6 @@ export default class ComponentManager {
     callerDataObj.message.channel.send(`List of commands:\n${commands.filter(value => value.obj.aliases !== null && value.obj.aliases !== undefined).map((value) => `**\`${value.name}\`**${value.obj.aliases.length !== 0 ? `\` (\`*\`${value.obj.aliases.join('\`*\`, \`*\`')}\`*\`)\`` : ''}\:\n*${value.obj.description}*`).join('\n')}`);
   }
 
-
   public unloadCommand(callerDataObj: CallerDataObject) {
     const author = callerDataObj.author;
     const args = callerDataObj.args;
@@ -430,8 +330,8 @@ export default class ComponentManager {
     if (this.iMods.hasKey(args[0])) {
       this.unloadModule(args[0], <Discord.TextChannel>callerDataObj.message.channel);
     }
-
   }
+  
   public loadCommand(callerDataObj: CallerDataObject) {
     const author = callerDataObj.author;
     const args = callerDataObj.args;
@@ -441,6 +341,7 @@ export default class ComponentManager {
       this.loadModuleFile(args[0], <Discord.TextChannel>callerDataObj.message.channel);
     }
   }
+  
   public reloadCommand(callerDataObj: CallerDataObject) {
     const author = callerDataObj.author;
     const args = callerDataObj.args;
@@ -450,7 +351,6 @@ export default class ComponentManager {
       this.reloadModule(args[0], <Discord.TextChannel>callerDataObj.message.channel);
     }
   }
-
 
   public savemodules(callerDataObj: CallerDataObject, channel?: Discord.TextChannel) {
     let message: Discord.Message;
@@ -482,6 +382,7 @@ export default class ComponentManager {
     });
     //console.log(JSON.stringify(data, null, '    '));
   }
+  
   public loadModule(name: string, relDir?: string | null, channel?: Discord.TextChannel) {
     //if (!this.iMods.hasKey(name)) this.loadModulesFromFiles();
     if (name.endsWith('.ts')) name = name.substr(0, name.lastIndexOf('.'));
@@ -522,6 +423,7 @@ export default class ComponentManager {
       });
     }
   }
+  
   public unloadModule(name: string, channel?: Discord.TextChannel) {
     console.log('unload')
     if (this.deinitFuncs[name])
@@ -535,6 +437,7 @@ export default class ComponentManager {
     this.iMods.Remove(name)
     if (channel) channel.send(`Unloaded module **${name}**`);
   }
+  
   public reloadModule(name: string, channel?: Discord.TextChannel) {
     this.unloadModule(name);
     this.loadModule(name);
