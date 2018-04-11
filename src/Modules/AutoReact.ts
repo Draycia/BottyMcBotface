@@ -1,5 +1,6 @@
 import Discord = require("discord.js");
 import Command from "./Command";
+import DataStream from "../DataStream";
 
 export default class AutoReact {
   private bot: Discord.Client;
@@ -9,27 +10,46 @@ export default class AutoReact {
   private ignoreUsers: string[] = [];
   //private ignoreUsers: string[] = ["184165847940464641"];
   private originalThinkosOnly = false;
+  
+  private dataStream: DataStream;
 
   public readonly fileName = __filename.substr(__filename.lastIndexOf('\\') + 1, __filename.lastIndexOf('.'));
   public readonly className = this.constructor.name;
   private readonly handler  = this.onMessage.bind(this);
+
+  private greetingWords = [
+    "hello", "hi", "hey",
+    "hola", "greetings", "howdy",
+    "morning", "yo", "what's up homies",
+    "good morning", "goodmorning",
+    "good evening", "goodevening",
+    "good night", "goodnight",
+    "good day", "goodday",
+  ];
+
   public init(obj: any) {
     console.log("Auto React module loaded!!");
     this.bot = obj.bot;
     this.bot.addListener("message", this.handler);
+    this.dataStream = new DataStream();
+    this.ignoreUsers = this.dataStream.get("Data.json", "ignoredUsers") || [];
+    this.originalThinkosOnly = this.dataStream.get("Data.json", "originalThinkosOnly") || false;
   }
 
   public deinit() {
     console.log("Auto React module unloaded!");
     this.bot.removeListener("message", this.handler);
+    this.dataStream.set("Data.json", this.ignoreUsers, "ignoredUsers");
+    this.dataStream.set("Data.json", this.originalThinkosOnly, "originalThinkosOnly");
   }
 
   public onMessage(message: Discord.Message) {
-    //this.bot.removeAllListeners();
     if (message.author.bot) return;
-    if (this.ignoreUsers.includes(message.author.id)) return;
+    if (this.ignoreUsers.includes(message.author.id)) return console.log("Returning!");
     let hasThinking = false;
-    // message.channel.send('topkek')
+
+    const helloRegex = new RegExp(`^(${this.greetingWords.join("|")})\\b`);
+    if (helloRegex.test(message.cleanContent)) message.react("408527155891273738");
 
     if (message.content.toString().includes("🤔")) {
       hasThinking = true;
@@ -40,12 +60,14 @@ export default class AutoReact {
       emojis.forEach((emoji: string) => { if (emoji.toLowerCase().match(/(think|thonk)/g)) hasThinking = true });
     }
     if (hasThinking) {
-      const guildEmojis = message.guild.emojis.filter((x: Discord.Emoji) => x.name.includes("thinking"));
-      console.log(guildEmojis.size);
-      const guildEmoji =guildEmojis.random();
-      if (guildEmoji) {
-        message.react(guildEmoji);
-        return;
+      if (this.originalThinkosOnly) {
+        message.react("🤔");
+      } else {
+        const guildEmoji = message.guild.emojis.filter((x: Discord.Emoji) => x.name.includes("thinking")).random();
+        if (guildEmoji) {
+          message.react(guildEmoji);
+          return;
+        }
       }
     }
   }
