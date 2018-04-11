@@ -209,7 +209,7 @@ export default class ComponentManager {
   }
 
   private onMessage(message: Discord.Message) {
-    this.createDataFiles('Pleb');
+    //this.createDataFiles('Pleb');
     // if (message.author.bot)
     //   console.log(message.embeds);
     // if (!message.author.bot)
