@@ -23,7 +23,8 @@ const ModuleDataFiles: string[] = ["Module_Data_Collection.json", "Module_Cmd_Pe
 export default class ComponentManager {
   private bot: Discord.Client;
   private deinitFuncs: any = {};
-  private moduleDir = './Modules/';
+  private workSpaceDir = __dirname.split('\\').slice(0, __dirname.split('\\').length - 1).join('/');
+  private moduleDir = this.workSpaceDir + '/src/Modules';
   private fileDir = './src' + this.moduleDir.substring(1);
   private commandsFile: string = __dirname.split('\\').slice(0, __dirname.split('\\').length - 1).join('/') + '/settings/commands.json';
   private adminUsers = ["184165847940464641", "214775036119089156"];
@@ -35,7 +36,6 @@ export default class ComponentManager {
 
   private ignores: string[] = ["Command.ts", "KeyValue.ts", "InDev.ts", "app.ts", "Botty.ts", "FileBackedObject.ts", "PersonalSettings.ts", "SharedSettings.ts"];
 
-  private workSpaceDir = __dirname.split('\\').slice(0, __dirname.split('\\').length - 1).join('/');
 
   constructor(bot: Discord.Client) {
     console.log("Module Loader loaded. Giggity.");
@@ -53,15 +53,17 @@ export default class ComponentManager {
   }
 
   public getModuleFiles(): string[] {
-    const workSpaceDir = __dirname.split('\\').slice(0, __dirname.split('\\').length - 1).join('/');
-    const files = getFiles(workSpaceDir + '/src/Modules').filter((f: string) => this.ignores.indexOf(f.split('\\').reverse()[0]) === -1).map(f => f.split('\\').reverse()[0]);
-    const files2 = getFiles(workSpaceDir + '/src').filter((f: string) => this.ignores.indexOf(f.split('\\').reverse()[0]) === -1).map(f => f.split('\\').reverse()[0]);
-    const dirs = getDirectories(workSpaceDir + '/src/Modules').map(d => d.split('\\').reverse()[0]);
+    //-> Gets files in '/Modules/' directory, excludes file name within the 'ignores' array.
+    const files = getFiles(this.workSpaceDir + '/src/Modules').filter((f: string) => this.ignores.indexOf(f.split('\\').reverse()[0]) === -1).map(f => f.split('\\').reverse()[0]);
+    //-> Get files in the base (top-most level) directory '/src/', again, exclusing files we specified to ignore.
+    const files2 = getFiles(this.workSpaceDir + '/src').filter((f: string) => this.ignores.indexOf(f.split('\\').reverse()[0]) === -1).map(f => f.split('\\').reverse()[0]);
+    //-> Compile a list of sub-directories in '/Modules/' directory: where the Module named directories are.
+    const dirs = getDirectories(this.workSpaceDir + '/src/Modules').map(d => d.split('\\').reverse()[0]);
+    //-> return the intersection between the files and the directories. This'll return the names of files that have a matching directory name.
     return intersect(files.concat(files2), dirs, (s: string) => s.split('.')[0]);
   }
 
   private fileProperties: string[] = ['aliases', 'description', 'handlerName', 'prefix', 'isActive', 'isPrivileged', 'allowedUsers', 'stopPropagation', 'fallbackName'];
-  private ModuleDataFiles: string[] = ["Module_Data_Collection.json", "Module_Cmd_Persistence.json", "Module_Env_Settings.json"];
   public loadModuleFile(name: string, channel?: Discord.TextChannel) {
     //-> Gets all files that have a corresponding Module folder with the same name.
     const intersection: string[] = this.getModuleFiles();
@@ -260,13 +262,13 @@ export default class ComponentManager {
   public listModules(callerDataObj: CallerDataObject) {
     callerDataObj.message.channel.send(`List of Modules:\n${this.iMods.keys.join(", ")}`);
   }
-  
+
   public getModuleData(callerDataObj: CallerDataObject) {
     console.log(this.iMods.Item(callerDataObj.args[0]));
     const send = this.iMods.Item(callerDataObj.args[0]);
     if (send) callerDataObj.message.channel.send("```json\n" + JSON.stringify(send, null, '  ') + "\n```");
   }
-  
+
   public editModuleData(callerDataObj: CallerDataObject) {
     const [moduleName, commandName, objectProperty] = callerDataObj.args.slice(0, 3);
     // (this.propertyValueParser(callerDataObj.args.slice(3).join(" ")));
@@ -275,7 +277,7 @@ export default class ComponentManager {
     (<any>this.iMods.Item(moduleName).values[this.iMods.Item(moduleName).keys.indexOf(commandName)])[objectProperty] = propertyValue;
     callerDataObj.message.channel.send(`Updated Module \`${moduleName}\`'s \`${commandName}\` command property \`${objectProperty}\` to \`"${propertyValue}"\` \n \`\`\`json\n"${commandName}": \{\n  . . .\n  "${objectProperty}": "${propertyValue}"\,\n  . . .\n\}\`\`\``);
   }
-  
+
   public propertyValueParser(source: string): any {
     const matches = new RegExp(/^\(([^)]+)\)/).exec(source);
     if (!matches) return null;
@@ -331,7 +333,7 @@ export default class ComponentManager {
       this.unloadModule(args[0], <Discord.TextChannel>callerDataObj.message.channel);
     }
   }
-  
+
   public loadCommand(callerDataObj: CallerDataObject) {
     const author = callerDataObj.author;
     const args = callerDataObj.args;
@@ -341,89 +343,67 @@ export default class ComponentManager {
       this.loadModuleFile(args[0], <Discord.TextChannel>callerDataObj.message.channel);
     }
   }
-  
+
   public reloadCommand(callerDataObj: CallerDataObject) {
     const author = callerDataObj.author;
     const args = callerDataObj.args;
-    if (this.adminUsers.includes(author.id) === true) return;
+    //if (this.adminUsers.includes(author.id) === true) return;
     if (!args[0]) return;
     if (this.iMods.hasKey(args[0])) {
       this.reloadModule(args[0], <Discord.TextChannel>callerDataObj.message.channel);
     }
   }
 
-  public savemodules(callerDataObj: CallerDataObject, channel?: Discord.TextChannel) {
+  public saveModules(callerDataObj: CallerDataObject, channel?: Discord.TextChannel) {
+    //-> Temp message that's edited when all files have attempted to be saved.
     let message: Discord.Message;
+    //-> Just variables.
     let done: boolean = false;
     let err: boolean = false;
+    const modulesStatus: {noErrors: string[], hasErrors: string[]} = {noErrors: [], hasErrors: []};
+    //-> Send pending message, edit it accordingly when the saving has been completed.
     callerDataObj.message.channel.send(`Saving Modules . . .`).then((value: Discord.Message) => {
       message = value;
-      done ? message.edit(`Moudles Saved ${err ? 'S' : 'Uns'}uccessfully`) : message = value
+      //-> Edit message if saving completed before message sends: displaying if all Modules saved successfully, or if there were ones that hadn't.
+      done ? (message ? (message.edit(`${modulesStatus.hasErrors.length === 0 ? 'All ' : (modulesStatus.noErrors.length !== 0 ? 'The following ' : '')}${modulesStatus.noErrors.length} Moudles were saved successfully:\n${(modulesStatus.noErrors.length > 0 ? '`' + modulesStatus.noErrors.join('`, `') + '`' : '')}${modulesStatus.hasErrors.length  !== 0 ? `\n${modulesStatus.hasErrors.length} Module${modulesStatus.hasErrors.length === 1 ? '' : 's'} encountered errors and were not saved${modulesStatus.hasErrors.length > 0 ? `:\n${'`' + modulesStatus.hasErrors.join('`, `') + '`'}` : '.'}` : ''}`)) : null) : null
     });
-    const data: any = {}
+    //-> Names of Command properties and their string version counterpart. Functions are saved as the handler's name. 
     const modProperties: string[] = ['aliases', 'description', 'handler', 'prefix', 'isActive', 'isPrivileged', 'allowedUsers', 'stopPropagation', 'fallback'];
     const fileProperties: string[] = ['aliases', 'description', 'handlerName', 'prefix', 'isActive', 'isPrivileged', 'allowedUsers', 'stopPropagation', 'fallbackName'];
+    //-> Iterate the Module names within 'iMods'.;
     this.iMods.keys.forEach(outerKey => {
-      data[outerKey] = {};
+      //-> Instantiate Module's data object.
+      const data: Array<{}> = [];
+      //-> Iterate all Commands within the Module's data.
       this.iMods.Item(outerKey).keys.forEach(innerKey => {
-        data[outerKey][innerKey] = {};
+        //->  Instantiate Command's data object.
+        const innerData: any = {};
+        //-> Add property 'name'.
+        innerData['name'] = innerKey;
+        //-> Makes things easier & cleaner.
         const element = (<any>this.iMods.Item(outerKey).Item(innerKey));
+        //-> Iterate the properties of the stored Command object
         modProperties.forEach(requiredProperty => {
-          const property = (<any>this.iMods.Item(outerKey).Item(innerKey))[requiredProperty]
-          data[outerKey][innerKey][fileProperties[modProperties.indexOf(requiredProperty)]] = (property ? (property instanceof Function ? property['name'] : property) : null);
+          const property = element[requiredProperty];
+          //-> Assign value of the corresponding 'file property' (at same index as 'requiredProperty' within 'fileProperties') to the value, or the name if the property's value is of Function.
+          innerData[fileProperties[modProperties.indexOf(requiredProperty)]] = (property ? (property instanceof Function ? property['name'].replace('bound ', '') : property) : null);
         });
-        data[outerKey][innerKey]['name'] = innerKey;
+        //-> Add that Command to the soon-to-be-json-stringified Array object.
+        data.push(innerData);
+      });
+      //-> Save the Module's Commands file in the directory corresponding to the name of the file, contents being the object 'data' after JSON.stringify(...).
+      fs.writeFile(`${this.moduleDir}/${outerKey}/Module_Cmd_Persistence.json`, JSON.stringify(data, null, 3), (errr: Error) => {
+        //-> Keep trrack of all Module names and if saving was successfull.
+        (errr !== null && err !== undefined) ? modulesStatus.hasErrors.push(outerKey) : modulesStatus.noErrors.push(outerKey)
       });
     });
-    fs.writeFile(this.commandsFile, JSON.stringify(data, null, 3), (errr: Error) => {
-      done = true;
-      err = (errr !== null && err !== undefined);
-      message ? message.edit(`Moudles Saved ${err ? 'S' : 'Uns'}uccessfully`) : null;
-    });
-    //console.log(JSON.stringify(data, null, '    '));
+    //-> Edit message if saving completes after message sends: displaying if all Modules saved successfully, or if there were ones that hadn't.
+    this.iMods.keys.slice(0, 0).forEach(k => { message ? message.edit(`${modulesStatus.hasErrors.length === 0 ? 'All ' : (modulesStatus.noErrors.length !== 0 ? 'The following ' : '')}${modulesStatus.noErrors.length} Moudles were saved successfully:\n${modulesStatus.noErrors.length > 0 ? '`' + modulesStatus.noErrors.join('`, `') + '`' : ''}${modulesStatus.hasErrors.length  !== 0 ? `\n${modulesStatus.hasErrors.length} Module${modulesStatus.hasErrors.length === 1 ? '' : 's'} encountered errors and were not saved${modulesStatus.hasErrors.length > 0 ? `:\n${'`' + modulesStatus.hasErrors.join('`, `') + '`'}` : '.'}` : ''}`) : null});
+    //-> Set the saving process to be 'done'. This is only used in cases where the above statement doesn't edit the message because the message hadn't sent to the channel yet.
+    //-> Using this in it's callback to edit the message from there.
+    done = true;
   }
-  
-  public loadModule(name: string, relDir?: string | null, channel?: Discord.TextChannel) {
-    //if (!this.iMods.hasKey(name)) this.loadModulesFromFiles();
-    if (name.endsWith('.ts')) name = name.substr(0, name.lastIndexOf('.'));
-    if (name === 'ComponentManager') {
-      for (let mod in this.iMods.Item(name).keys) {
-        const that: any = this;
-        this.iMods.Item(name).values[parseInt(mod)].handler = (<Function>(that[that.iMods.Item(name).values[parseInt(mod)].handlerName]));
-      }
-    } else {
-      import((relDir ? relDir : this.moduleDir) + name).then(importedModule => {
-        let botModule = new importedModule.default;
-        let data;
-        let fromFile: boolean = false;
-        if (typeof botModule.register !== "undefined") {
-          data = botModule.register();
-        } else {
-          if (this.iMods.hasKey(name)) {
-            fromFile = true; data = this.iMods.Item(name).keys;
-            console.log(`|---Module Data exists for: ${name}`);
-          } else {
-            data = { name: {} };
-          };
-        }
-        console.log('|---Module `init()` message:')
-        console.log('|---')
-        if (typeof botModule.init !== "undefined")
-          botModule.init({ bot: this.bot, commandObj: this.iMods, deinitFunctions: this.deinitFuncs, admins: this.adminUsers });
-        if (typeof botModule.deinit !== "undefined")
-          this.deinitFuncs[name] = botModule;
-        console.log('|---')
-        if (!fromFile) this.iMods.Add(name, new KeyValueArray<Command>()); else this.iMods.Item(name);
-        //console.log(data);
-        for (let mod in data) {
-          fromFile ? this.iMods.Item(name).values[parseInt(mod)].handler = botModule[this.iMods.Item(name).values[parseInt(mod)].handlerName].bind(botModule) : this.iMods.Item(name).Add(mod, data[mod]);
-        }
-        if (channel) channel.send(`Loaded module **${name}**`);
-        console.log(`|---|---Loaded: ${relDir || this.moduleDir}${name}`);
-      });
-    }
-  }
-  
+
   public unloadModule(name: string, channel?: Discord.TextChannel) {
     console.log('unload')
     if (this.deinitFuncs[name])
@@ -437,10 +417,10 @@ export default class ComponentManager {
     this.iMods.Remove(name)
     if (channel) channel.send(`Unloaded module **${name}**`);
   }
-  
+
   public reloadModule(name: string, channel?: Discord.TextChannel) {
     this.unloadModule(name);
-    this.loadModule(name);
+    this.loadModuleFile(name);
     if (channel) channel.send(`Reloaded module **${name}**`);
   }
 
