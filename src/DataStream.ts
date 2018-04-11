@@ -15,19 +15,34 @@ export default class DataStream {
     this.checkDirectory();
   }
 
-  public get(fileName: string) {
+  public get(fileName: string, path?: string) {
     console.log(`Getting data for file ${fileName}.`);
     let filePath = this.directory + fileName;
     this.doChecks(filePath);
     let fileContents = fs.readFileSync(filePath, "utf8");
-    return fileContents === "" ? {} : JSON.parse(fileContents);
+
+    if (fileContents === "") return null;
+
+    if (path) {
+      return this.getByString(fileContents, path);
+    }
+
+    return JSON.parse(fileContents);
   }
 
-  public set(fileName: string, data: any) {
+  public set(fileName: string, data: any, path?: string) {
     console.log(`Saving data for file ${fileName}.`);
+
+    if (path) {
+      let oldData = this.get(fileName);
+      if (!oldData) oldData = {};
+      this.setByString(oldData, data, path);
+      data = oldData;
+    }
+
     let filePath = this.directory + fileName;
     this.doChecks(filePath);
-    fs.writeFileSync(filePath, data);
+    fs.writeFileSync(filePath, JSON.stringify(data));
   }
 
   private doChecks(fileNamePath: string) {
@@ -46,4 +61,17 @@ export default class DataStream {
       fs.mkdirSync(this.directory);
     }
   }
+
+  private getByString(obj: any, path: string) {
+    return path.split('.').reduce((acc, part) => acc && acc[part], obj);
+  }
+
+private setByString(obj: any, value: any, path: string) {
+    var i;
+    let pathBuffer = path.split('.');
+    for (i = 0; i < pathBuffer.length - 1; i++)
+        obj = obj[pathBuffer[i]];
+
+    obj[pathBuffer[i]] = value;
+}
 }
