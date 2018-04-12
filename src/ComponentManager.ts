@@ -46,10 +46,30 @@ export default class ComponentManager {
     }
     this.getModuleFiles().forEach(ModuleFile => this.loadModuleFile(ModuleFile));
     this.iMods.Item("ComponentManager").values.forEach(v => { /*console.log(v.handler);*/ v.handler = v.handler.bind(this) });
+
+    if (process.platform === "win32") {
+      var rl = require("readline").createInterface({
+        input: process.stdin,
+        output: process.stdout
+      });
+    
+      rl.on("SIGINT", function () {
+        process.emit("SIGINT");
+      });
+    }
+    
+    process.on("SIGINT", this.handleSIGINT.bind(this));
   }
 
   private onBot() {
 
+  }
+
+  public handleSIGINT() {
+    process.stdin.resume();
+    console.log("Bot has been stopped via Ctrl+C, shutting down.");
+    this.iMods.keys.slice().forEach(key => { if (key ==="ComponentManager") return; this.unloadModule(key) });
+    process.exit();
   }
 
   public getModuleFiles(): string[] {
@@ -425,7 +445,7 @@ export default class ComponentManager {
   }
   
   public unloadModule(name: string, channel?: Discord.TextChannel) {
-    console.log('unload')
+    if (name === "ComponentManager") return console.log("Request to unload ComponentManager denied. Feel free to ignore this.");
     if (this.deinitFuncs[name])
       this.deinitFuncs[name].deinit();
     //delete this.modules[name];
