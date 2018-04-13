@@ -3,5 +3,14 @@
       "184165847940464641",
       "214775036119089156"
    ],
-   "$/prefix": "!"
+   "$/prefix": "!",
+   "greetingWords": [
+      "hello", "hi", "hey",  "hola",
+      "greetings", "howdy", "morning",
+      "what's up", "whats up", "yo",
+      "good morning", "goodmorning",
+      "good evening", "goodevening",
+      "good night", "goodnight",
+      "good day", "goodday"
+   ]
 }

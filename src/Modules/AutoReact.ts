@@ -1,6 +1,7 @@
 import Discord = require("discord.js");
 import Command from "./Command";
 import DataStream from "../DataStream";
+import KeyValueArray, { DataReference } from "./KeyValue";
 
 export default class AutoReact {
   private bot: Discord.Client;
@@ -8,8 +9,8 @@ export default class AutoReact {
   private responseWords: string[] = ["thonk", "think"];
   private responseEmoji: string[] = [];
   private ignoreUsers: string[] = [];
-  //private ignoreUsers: string[] = ["184165847940464641"];
   private originalThinkosOnly = false;
+  private customData: KeyValueArray<DataReference> = new KeyValueArray<DataReference>();
   
   private dataStream: DataStream;
 
@@ -17,27 +18,21 @@ export default class AutoReact {
   public readonly className = this.constructor.name;
   private readonly handler  = this.onMessage.bind(this);
 
-  private greetingWords = [
-    "hello", "hi", "hey",
-    "hola", "greetings", "howdy",
-    "morning", "yo", "what's up homies",
-    "good morning", "goodmorning",
-    "good evening", "goodevening",
-    "good night", "goodnight",
-    "good day", "goodday",
-  ];
+  private greetingWords: string[];
 
   public init(obj: any) {
-    console.log("Auto React module loaded!!");
+    console.log(`'${this.className}' module loaded from file '${this.fileName}'!`);
     this.bot = obj.bot;
     this.bot.addListener("message", this.handler);
+    this.customData = obj.customData;
     this.dataStream = new DataStream();
+    this.greetingWords = this.customData.Item('greetingWords').data;
     this.ignoreUsers = this.dataStream.get("Data.json", "ignoredUsers") || [];
     this.originalThinkosOnly = this.dataStream.get("Data.json", "originalThinkosOnly") || false;
   }
 
   public deinit() {
-    console.log("Auto React module unloaded!");
+    console.log(`'${this.className}' module unloaded from file '${this.fileName}'!`);
     this.bot.removeListener("message", this.handler);
     this.dataStream.set("Data.json", this.ignoreUsers, "ignoredUsers");
     this.dataStream.set("Data.json", this.originalThinkosOnly, "originalThinkosOnly");
@@ -57,7 +52,7 @@ export default class AutoReact {
       const emojiRegex = /\<\:[a-zA-Z0-9_]{1,50}\:[0-9]{18}\>/g;
       const emojis = message.content.toString().match(emojiRegex);
       if (!emojis) return;
-      emojis.forEach((emoji: string) => { if (emoji.toLowerCase().match(/(think|thonk)/g)) hasThinking = true });
+      emojis.forEach((emoji: string) => { if (emoji.toLowerCase().match(`/(${this.responseWords.join("|")})/g`)) hasThinking = true });
     }
     if (hasThinking) {
       if (this.originalThinkosOnly) {

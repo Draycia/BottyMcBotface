@@ -158,7 +158,7 @@
             "smod"
         ],
         "description": "Save Module commands.",
-        "handlerName": "savemodules",
+        "handlerName": "saveModules",
         "prefix": "~",
         "isActive": true,
         "isPrivileged": true,

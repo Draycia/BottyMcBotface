@@ -9,7 +9,7 @@
         "prefix": "$l/prefix",
         "isActive": true,
         "isPrivileged": false,
-        "allowedUsers": [ ],
+        "allowedUsers": "$l/adminUsers",
         "stopPropagation": true,
         "fallbackName": null
     },
@@ -37,7 +37,7 @@
         "prefix": "$l/prefix",
         "isActive": true,
         "isPrivileged": false,
-        "allowedUsers": [ ],
+        "allowedUsers": "$l/adminUsers",
         "stopPropagation": true,
         "fallbackName": null
     }
