@@ -29,17 +29,6 @@ const fileExists = (source: fs.PathLike) => fs.existsSync(source);
 //-> The data files within each Modules named data directories.
 const ModuleDataFiles: string[] = ["Module_Data_Collection.json", "Module_Cmd_Persistence.json", "Module_Env_Settings.json"];
 
-export class OnceEvent {
-  private handles: Array<string> = new Array<string>();
-  public register(handle: string) {
-    this.handles.push(handle);
-  }
-  public occured(handle: string): boolean {
-    const existed = (this.handles.includes(handle))
-    if (existed) this.handles.splice(this.handles.indexOf(handle), 1);
-    return existed;
-  }
-}
 
 export default class ComponentManager {
   //-> The 'bot' (Client)!
@@ -52,8 +41,6 @@ export default class ComponentManager {
   private moduleDir = this.workSpaceDir + '/src/Modules';
   //-> Currently bugged, but this is now defined on a per-Module basis, but will be moved to the Global Module Settings file once implemented.
   private adminUsers = ["184165847940464641", "214775036119089156"];
-  //->
-  private OEvents: OnceEvent = new OnceEvent();
 
   //-> Stores all Module Command data.
   private iMods: KeyValueArray<KeyValueArray<Command>> = new KeyValueArray<KeyValueArray<Command>>();
