@@ -70,14 +70,9 @@ export default class ComponentManager {
       //-> Register event 'message' to method, which'll handle when a Message is sent and Commands the Message could be calling.
       this.bot.on("message", this.onMessage.bind(this));
     }
-<<<<<<< HEAD
     console.log(`|${'―'.repeat(8)}\n|\n|${'―'.repeat(25)} [ Load In All Module Data ]\n|\n|${'―'.repeat(8)}`);
     //-> Get all Files that have a corresponding (existing) directory with a mathcing name, loading all of those Modules in and caching/loading all data.
     this.getModuleFiles().forEach(ModuleFile => this.loadModuleFile(ModuleFile))
-=======
-    //-> Get all Files that have a corresponding (existing) directory with a mathcing name, loading all of those Modules in and caching/loading all data.
-    this.getModuleFiles().forEach(ModuleFile => this.loadModuleFile(ModuleFile));
->>>>>>> b39f3bbb1758e60c7488bb65416cbd2e4ff06968
     //-> After loading all Modules, assign this's Command function handlers to be bound to 'this' to ensure the function's scope is the correct context.
     this.iMods.Item("ComponentManager").values.forEach(v => { /*console.log(v.handler);*/ v.handler = v.handler.bind(this) });
   }
@@ -295,13 +290,8 @@ export default class ComponentManager {
       //-> If the Command is active (redundant condition, fight me) and the 'stopPropagation' value exists and is 'true' then specify that the remaining will be skipped ('skipRemaining' = true).
       if (value.isActive) {
         if (value.stopPropagation ? true : false) skipRemaining = true;
-<<<<<<< HEAD
         //-> Well, this checks if privileged, if you're an allowed user (if specified), if a handler is defined (if you're allowed), if not allowed then check if a fallback function is defined,
         //-> if not then call the default fallback, and if not a privileged command and/or no allowed users are specified then just call the handler.
-=======
-      //-> Well, this checks if privileged, if you're an allowed user (if specified), if a handler is defined (if you're allowed), if not allowed then check if a fallback function is defined,
-      //-> if not then call the default fallback, and if not a privileged command and/or no allowed users are specified then just call the handler.
->>>>>>> b39f3bbb1758e60c7488bb65416cbd2e4ff06968
         value.isPrivileged ? (value.allowedUsers && value.allowedUsers.length !== 0 ? (value.allowedUsers.indexOf(message.author.id) !== -1 ? value.handler({ author, args, message }) : (value.fallback ? value.fallback({ author, args, message }) : this.iMods.Item('InDev').Item('defaultFallback').handler({ author, args, message }))) : value.handler({ author, args, message })) : value.handler({ author, args, message });
       }
     });
