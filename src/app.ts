@@ -1,4 +1,6 @@
 import Botty from "./Botty";
+import Logger from "./Logger";
+import fs = require("fs");
 
 // import ApiStatus from "./ApiStatus";
 // import AutoReact from "./AutoReact";
@@ -17,6 +19,9 @@ import ComponentManager from "./ComponentManager";
 import { fileBackedObject } from "./FileBackedObject";
 import { PersonalSettings } from "./PersonalSettings";
 import { SharedSettings } from "./SharedSettings";
+
+let envSettings = JSON.parse(fs.readFileSync("./src/Modules/ComponentManager/Module_Env_Settings.json", "utf8"));
+Logger.setDevLogging(envSettings.devLoggingEnabled || false);
 
 declare global {
    interface Array<T> {
