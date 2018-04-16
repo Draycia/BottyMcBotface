@@ -75,6 +75,26 @@ export default class ComponentManager {
     this.getModuleFiles().forEach(ModuleFile => this.loadModuleFile(ModuleFile))
     //-> After loading all Modules, assign this's Command function handlers to be bound to 'this' to ensure the function's scope is the correct context.
     this.iMods.Item("ComponentManager").values.forEach(v => { /*console.log(v.handler);*/ v.handler = v.handler.bind(this) });
+
+    if (process.platform === "win32") {
+      var rl = require("readline").createInterface({
+        input: process.stdin,
+        output: process.stdout
+      });
+    
+      rl.on("SIGINT", function () {
+        process.emit("SIGINT");
+      });
+    }
+    
+    process.on("SIGINT", this.handleSIGINT.bind(this));
+  }
+
+  public handleSIGINT() {
+    process.stdin.resume();
+    console.log("Bot has been stopped via Ctrl+C, shutting down.");
+    this.iMods.keys.slice().forEach(key => { if (key ==="ComponentManager") return; this.unloadModule(key) });
+    process.exit();
   }
 
   private onBot() {
