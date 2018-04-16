@@ -58,7 +58,7 @@ export default class DataStream {
     //-> Ensure the corrresponding Directory and Files exist before proceeding.
     this.doChecks(filePath);
     //-> Save json Data to File.
-    fs.writeFileSync(filePath, JSON.stringify(data));
+    fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
   }
 
   private doChecks(fileNamePath: string) {
